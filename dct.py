@@ -1,8 +1,7 @@
 import numpy as np
 
 
-def dct_base(f):
-    n = f.shape[0]
+def dct_base(n):
     D = np.zeros((n, n))
     alpha = alphas(n)
 
