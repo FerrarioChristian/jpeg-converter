@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def dct_base():
-    n = 8
+def dct_base(dang):
+    n = dang
     D = np.zeros((n, n))
     alpha = alphas(n)
 
