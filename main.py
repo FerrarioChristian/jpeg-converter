@@ -6,6 +6,7 @@ import cv2
 
 # Carica direttamente in scala di grigi
 gray_matrix = cv2.imread("./test.png", cv2.IMREAD_GRAYSCALE)
+np.set_printoptions(threshold=np.inf)
 def main():
     ex0 = np.array(range(0, 64)) * 0 + 10
     ex1 = np.array(range(0, 64))
