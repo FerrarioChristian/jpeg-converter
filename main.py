@@ -1,12 +1,15 @@
 import numpy as np
 
+
 from dct import dct2, dct_base, idct2
+import cv2
 
-
+# Carica direttamente in scala di grigi
+gray_matrix = cv2.imread("./test.png", cv2.IMREAD_GRAYSCALE)
 def main():
     ex0 = np.array(range(0, 64)) * 0 + 10
     ex1 = np.array(range(0, 64))
-    ex2 = np.tensordot(ex0, ex1, axes=0)
+    ex2 = gray_matrix
     print("ex2")
     print(ex2.shape)
     print(ex2)
@@ -60,6 +63,7 @@ def main():
     print(f.shape)
     print(np.round(f, 2))
     
+    cv2.imwrite('immagine_salvata.jpg', gray_matrix)
 
     
         
