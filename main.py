@@ -50,7 +50,7 @@ def main():
     print(np.round(image, 2))
 
     image = np.clip(image, 0, 255).astype(np.uint8)
-    cv2.imwrite("result.jpg", image)
+    cv2.imwrite("result.bmp", image)
 
 
 def load_image(image_path):
