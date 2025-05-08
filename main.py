@@ -1,3 +1,5 @@
+# from sys import maxsize as sys_maxsize
+
 import cv2
 import numpy as np
 
@@ -5,48 +7,50 @@ from dct import dct2, dct_base, idct2
 
 
 def main():
-    image = load_image("test.png")
+    image = load_image("./images/test.png").astype(np.float32)
 
-    q = input_value("Numero tra 1 e 100: ", 1, 100)
-    meh = input_value(f"Numero tra 0 e {2*q - 2}: ", 0, 2 * q - 2)
+    f = input_value("Numero tra 1 e 100: ", 1, 100)
+    d = input_value(f"Numero tra 0 e {2*f - 2}: ", 0, 2 * f - 2)
 
-    # np.set_printoptions(threshold=np.inf)
+    # np.set_printoptions(threshold=sys_maxsize)
 
     print("Image: ")
     print(f"{image.shape}")
     print(image)
 
-    D = dct_base(q)
+    D = dct_base(f)
 
     r, l = image.shape
     image = image - 128
 
-    div = np.zeros((q, q))
+    div = np.zeros((f, f))
 
-    for i in range(q):
-        for j in range(q):
-            if (i + j) < 2 * meh - 2:
+    for i in range(f):
+        for j in range(f):
+            if (i + j) < 2 * d - 2:
                 div[i, j] = 1
 
-    f = np.zeros((r, l))
-    for i in range(0, r, q):
-        for j in range(0, l, q):
-            if i + q <= r and j + q <= l:
-                f[i : i + q, j : j + q] = dct2(image[i : i + q, j : j + q], D)
-                f[i : i + q, j : j + q] = np.multiply(f[i : i + q, j : j + q], div)
+    for i in range(0, r, f):
+        for j in range(0, l, f):
+            if i + f <= r and j + f <= l:
+                image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
+                image[i : i + f, j : j + f] = np.multiply(
+                    image[i : i + f, j : j + f], div
+                )
 
-    for i in range(0, r, q):
-        for j in range(0, l, q):
-            if i + q <= r and j + q <= l:
-                f[i : i + q, j : j + q] = idct2(f[i : i + q, j : j + q], D)
+    for i in range(0, r, f):
+        for j in range(0, l, f):
+            if i + f <= r and j + f <= l:
+                image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
 
-    f = f + 128
+    image = image + 128
 
     print("Risultato: ")
-    print(f"{f.shape}")
-    print(np.round(f, 2))
+    print(f"{image.shape}")
+    print(np.round(image, 2))
 
-    cv2.imwrite("result.jpg", f)
+    image = np.clip(image, 0, 255).astype(np.uint8)
+    cv2.imwrite("result.jpg", image)
 
 
 def load_image(image_path):
@@ -79,9 +83,7 @@ if __name__ == "__main__":
 #     q=(100-q)/50
 # else:
 #     q= 50/q
-
-#      # puoi cambiarlo per regolare la compressione
-# Q = np.array([  # Matrice di quantizzazione JPEG standard 8x8
+# Q = np.array([
 #     [16,11,10,16,24,40,51,61],
 #     [12,12,14,19,26,58,60,55],
 #     [14,13,16,24,40,57,69,56],
