@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fftpack import dct, idct
+from dct import dct2 as custom_dct2, idct2 as custom_idct2, dct_base as custom_dct_base
+import time
+
+def main():
+    def dct2(a):
+        return dct(dct(a.T, norm='ortho').T, norm='ortho')
+
+    def idct2(a):
+        return idct(idct(a.T, norm='ortho').T, norm='ortho')
+
+    # Diverse dimensioni da testare
+    sizes = [32, 64, 128, 256, 512, 1024]
+    times = []
+    times_c = []
+
+    for size in sizes:
+        # Genera una matrice random di dimensione NxN
+        matrix = np.random.rand(size, size)
+
+        start = time.perf_counter()
+
+        # DCT2
+        transformed = dct2(matrix)
+
+        # "Compressione": azzera le alte frequenze
+        cutoff = size // 4
+        transformed[cutoff:, cutoff:] = 0
+
+        # IDCT2
+        reconstructed = idct2(transformed)
+
+        end = time.perf_counter()
+        elapsed_time = end - start
+        times.append(elapsed_time)
+
+        start = time.perf_counter()
+
+        D= custom_dct_base(size)
+        transformed_c = custom_dct2(matrix, D)
+        reconstructed = custom_idct2(transformed, D)
+        end = time.perf_counter()
+        elapsed_time = end - start
+        times_c.append(elapsed_time)
+
+
+    # Grafico semilogaritmico
+    plt.figure(figsize=(8,6))
+    plt.semilogy(sizes, times, marker='o', linestyle='-', color='blue', label='DCT2 + IDCT2 (scipy)')
+    plt.semilogy(sizes, times_c, marker='o', linestyle='-', color='red', label='DCT2 + IDCT2 (custom)')
+    plt.xlabel("Dimensione matrice (NxN)")
+    plt.ylabel("Tempo di compressione (s) [Scala logaritmica]")
+    plt.title("Tempi di compressione DCT2 + IDCT2 custom vs scipy")
+    plt.legend()
+    plt.grid(True, which="both", ls="--", linewidth=0.5)
+    plt.savefig('grafico_compressione.jpeg', format='jpeg')
+    plt.tight_layout()
+    plt.show()
+
+
+
+if __name__ == "__main__":
+    main()
