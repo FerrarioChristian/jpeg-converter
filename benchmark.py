@@ -44,10 +44,21 @@ def main():
         end = time.perf_counter()
         elapsed_time = end - start
         times_c.append(elapsed_time)
+    sizes_np = np.array(sizes, dtype=np.float64)
+    nlogn = sizes_np**2 * np.log2(sizes_np)  # perché fai DCT2 su matrice NxN
+    n3 = sizes_np**3
 
+    norm_factor = times[0] / nlogn[0]
+    nlogn_curve = norm_factor * nlogn
+
+    norm_factor3 = times[0] / n3[0]
+    n3_curve = norm_factor3 * n3
 
     # Grafico semilogaritmico
     plt.figure(figsize=(8,6))
+    plt.semilogy(sizes, nlogn_curve, marker='o', linestyle='-', color='green', label='O(n^2)')
+    plt.semilogy(sizes, n3_curve, marker='o', linestyle='-', color='black', label='O(n^3)')
+
     plt.semilogy(sizes, times, marker='o', linestyle='-', color='blue', label='DCT2 + IDCT2 (scipy)')
     plt.semilogy(sizes, times_c, marker='o', linestyle='-', color='red', label='DCT2 + IDCT2 (custom)')
     plt.xlabel("Dimensione matrice (NxN)")
