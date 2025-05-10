@@ -7,36 +7,51 @@ from dct import dct2, dct_base, idct2
 
 
 def main():
-    image = load_image("./images/test.png").astype(np.float32)
+    image = load_image("./images/test.bmp").astype(np.float32)
 
-    f = input_value("Numero tra 1 e 100: ", 1, 100)
+    f = input_value(f"Numero tra 1 e {min(image.shape)}: ", 1, min(image.shape))
     d = input_value(f"Numero tra 0 e {2*f - 2}: ", 0, 2 * f - 2)
 
     # np.set_printoptions(threshold=sys_maxsize)
 
-    print("Image: ")
-    print(f"{image.shape}")
-    print(image)
+    print_state("Immagine originale: ", image)
 
     D = dct_base(f)
 
+    image = cut_image(image, f)
+    image = apply_dct(image, f, D)
+    image = cut_frequencies(image, f, d)
+
+    print_state("Immagine dopo DCT: ", image)
+
+    image = apply_idct(image, f, D)
+
+    print_state("Immagine dopo IDCT: ", image)
+
+    image = np.clip(image, 0, 255).astype(np.uint8)
+    cv2.imwrite("result.bmp", image)
+
+
+def apply_dct(image, f, D):
+    """
+    Applica la DCT a blocchi di dimensione f x f dell'immagine.
+    """
     r, l = image.shape
     image = image - 128
-
-    div = np.zeros((f, f))
-
-    for i in range(f):
-        for j in range(f):
-            if (i + j) < 2 * d - 2:
-                div[i, j] = 1
 
     for i in range(0, r, f):
         for j in range(0, l, f):
             if i + f <= r and j + f <= l:
                 image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
-                image[i : i + f, j : j + f] = np.multiply(
-                    image[i : i + f, j : j + f], div
-                )
+
+    return image
+
+
+def apply_idct(image, f, D):
+    """
+    Applica la IDCT a blocchi di dimensione f x f dell'immagine.
+    """
+    r, l = image.shape
 
     for i in range(0, r, f):
         for j in range(0, l, f):
@@ -45,12 +60,35 @@ def main():
 
     image = image + 128
 
-    print("Risultato: ")
-    print(f"{image.shape}")
-    print(np.round(image, 2))
+    return image
 
-    image = np.clip(image, 0, 255).astype(np.uint8)
-    cv2.imwrite("result.bmp", image)
+
+def cut_frequencies(image, f, d):
+    div = np.zeros((f, f))
+    for i in range(f):
+        for j in range(f):
+            if (i + j) < d:
+                div[i, j] = 1
+
+    for i in range(0, image.shape[0], f):
+        for j in range(0, image.shape[1], f):
+            if i + f <= image.shape[0] and j + f <= image.shape[1]:
+                image[i : i + f, j : j + f] = np.multiply(
+                    image[i : i + f, j : j + f], div
+                )
+    return image
+
+
+def cut_image(image, f):
+    """
+    Taglia l'immagine in modo che le dimensioni siano multipli di f.
+    """
+    r, l = image.shape
+    r = r - (r % f)
+    l = l - (l % f)
+    image = image[0:r, 0:l]
+
+    return image
 
 
 def load_image(image_path):
@@ -72,6 +110,15 @@ def input_value(msg, min, max):
         except:
             pass
         print(f"Inserisci un numero intero tra {min} e {max}.")
+
+
+def print_state(msg, matrix):
+    """
+    Stampa lo stato della matrice.
+    """
+    print(msg)
+    print(f"{matrix.shape}")
+    print(matrix)
 
 
 if __name__ == "__main__":
