@@ -1,100 +1,98 @@
-# from sys import maxsize as sys_maxsize
+from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
 
-import cv2
+from PIL import Image, ImageTk
+from backend import load_image
+from backend import backend_func
 import numpy as np
 
-from dct import dct2, dct_base, idct2
+
+root = Tk()
+
 
 
 def main():
-    image = load_image("./images/test.png").astype(np.float32)
+    img_label = Label(root)
+    img_label.grid(row=1, column=1, padx=5, pady=5)
 
-    f = input_value("Numero tra 1 e 100: ", 1, 100)
-    d = input_value(f"Numero tra 0 e {2*f - 2}: ", 0, 2 * f - 2)
+    img_label_result = Label(root)
+    img_label_result.grid(row=1, column=1, padx=5, pady=5)
 
-    # np.set_printoptions(threshold=sys_maxsize)
+    
+    f_label = Label(root, text="Valore di f:")
+    f_label.grid(row=0, column=2, padx=5, pady=5, sticky="e")
 
-    print("Image: ")
-    print(f"{image.shape}")
-    print(image)
+    fBox = Entry(root, width=20)
+    fBox.grid(row=3, column=1, padx=5, pady=5)
 
-    D = dct_base(f)
+    d_label = Label(root, text="Valore di d:")
+    d_label.grid(row=1, column=2, padx=5, pady=5, sticky="e")
 
-    r, l = image.shape
-    image = image - 128
-
-    div = np.zeros((f, f))
-
-    for i in range(f):
-        for j in range(f):
-            if (i + j) < 2 * d - 2:
-                div[i, j] = 1
-
-    for i in range(0, r, f):
-        for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
-                image[i : i + f, j : j + f] = np.multiply(
-                    image[i : i + f, j : j + f], div
-                )
-
-    for i in range(0, r, f):
-        for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
-
-    image = image + 128
-
-    print("Risultato: ")
-    print(f"{image.shape}")
-    print(np.round(image, 2))
-
-    image = np.clip(image, 0, 255).astype(np.uint8)
-    cv2.imwrite("result.bmp", image)
+    dBox = Entry(root, width=20)
+    dBox.grid(row=2, column=1, padx=5, pady=5)
 
 
-def load_image(image_path):
-    """
-    Carica un'immagine in scala di grigi.
-    """
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        raise ValueError(f"Impossibile caricare l'immagine da {image_path}")
-    return image
 
+    def loadImage():
+        file_path = filedialog.askopenfilename(title="Seleziona immagine", filetypes=[("Immagini", "*.png;*.jpg;*.jpeg;*.gif;*.bmp")], initialdir="./images")
+        
+        if file_path:
+            root.selected_file = file_path
+            img = Image.open(file_path)
+            
+            img = img.resize((600, 600))
+            img_tk = ImageTk.PhotoImage(img)
+            
+            
+            img_label.config(image=img_tk)
+            img_label.image = img_tk  
 
-def input_value(msg, min, max):
-    while True:
+    def loadImage_result():
+        file_path = "./images/result.bmp"
+        
+        if file_path:
+            img = Image.open(file_path)
+            
+            img = img.resize((600, 600))  
+            img_tk = ImageTk.PhotoImage(img)
+            
+            img_label_result.config(image=img_tk)
+            img_label_result.image = img_tk  
+
+    def startConversion():
+        # Prendi i valori dai campi di testo
+        f_value = int(fBox.get())
+        d_value = int(dBox.get())
+
+        print(f"Valori inseriti: {f_value}, {d_value}")
+
+        # Verifica che i valori siano nel range corretto
+        if f_value <= 0 or d_value <= 0 or d_value > 2 * f_value - 2:
+            messagebox.showerror(
+            "Valori non validi",
+            f"Errore: f e d devono essere positivi, d deve essere minore di {2 * f_value - 2}"
+            )
+            return
+
         try:
-            x = int(input(msg))
-            if x >= min and x <= max:
-                return x
-        except:
-            pass
-        print(f"Inserisci un numero intero tra {min} e {max}.")
+            # Carica l'immagine e chiama la funzione backend
+            image = load_image(root.selected_file).astype(np.float32)
+            backend_func(root.selected_file, f_value, d_value)  # Chiama la funzione di conversione
+            loadImage_result()  # <-- carica l'immagine generata dopo la conversione
+        except Exception as e:
+            print(f"Errore durante la conversione: {e}")
 
+
+
+            
+    caricaImmagine = Button(root, text="Seleziona immagine", padx=50, command=loadImage)
+    caricaImmagine.grid()
+
+    conversionButton = Button(root, text="Converti", padx=50, command = startConversion)
+    conversionButton.grid()
+
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
-
-# Codice per la matrice di quantizzazione
-
-# if(q<=50):
-#     q=(100-q)/50
-# else:
-#     q= 50/q
-# Q = np.array([
-#     [16,11,10,16,24,40,51,61],
-#     [12,12,14,19,26,58,60,55],
-#     [14,13,16,24,40,57,69,56],
-#     [14,17,22,29,51,87,80,62],
-#     [18,22,37,56,68,109,103,77],
-#     [24,35,55,64,81,104,113,92],
-#     [49,64,78,87,103,121,120,101],
-#     [72,92,95,98,112,100,103,99]
-# ])
-# Qq = Q * q
-# div=np.zeros((8,8))
-# for i in range(0,8):
-#     for j in range(0,8):
-#         div= 1/(max(1,Qq[i,j]))
