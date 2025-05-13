@@ -69,7 +69,7 @@ def startConversion(fBox, dBox, root, img_label_result):
 def main():
     root = Tk()
 
-    root.title("image converter")
+    root.title("Caravaggio-converter")
     root.state('zoomed')
     
     # Imposta il background nero
@@ -77,6 +77,16 @@ def main():
     
     # Permetti il ridimensionamento della finestra
     root.resizable(True, True)
+
+    bg_img = Image.open("Caravaggio.jpg")
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    bg_img = bg_img.resize((screen_width, screen_height))
+    bg_img_tk = ImageTk.PhotoImage(bg_img)
+
+    # Label per lo sfondo
+    bg_label = Label(root, image=bg_img_tk)
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
     for i in range(3):
         root.grid_columnconfigure(i, weight=1)
