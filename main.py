@@ -78,37 +78,41 @@ def main():
     # Permetti il ridimensionamento della finestra
     root.resizable(True, True)
 
-    root.grid_rowconfigure(0, weight=1)  # Permette alla riga 0 di espandersi
-    root.grid_rowconfigure(1, weight=1)  # Permette alla riga 1 di espandersi
-    root.grid_rowconfigure(2, weight=1)  # Permette alla riga 2 di espandersi
-    root.grid_rowconfigure(3, weight=1)  # Permette alla riga 3 di espandersi
-    root.grid_columnconfigure(0, weight=1)  # Permette alla colonna 0 di espandersi
-    root.grid_columnconfigure(1, weight=1)  # Permette alla colonna 1 di espandersi
-    root.grid_columnconfigure(2, weight=1)
+    for i in range(3):
+        root.grid_columnconfigure(i, weight=1)
+    for i in range(2):
+        root.grid_rowconfigure(i, weight=10)
+    root.grid_rowconfigure(2, weight=1)
+
+    control_frame = Frame(root)
+    control_frame.grid(row=2, column=0, columnspan=3, padx=20, pady=10)
+
+    for i in range(6):
+        control_frame.grid_columnconfigure(i, weight=1)
 
     img_label = Label(root)
-    img_label.grid(row=1, column=0, columnspan=3)
+    img_label.grid(row=1, column=0)
 
     img_label_result = Label(root)
-    img_label_result.grid(row=1, column=2, columnspan=3)
+    img_label_result.grid(row=1, column=2)
 
-    f_label = Label(root, text="Valore di f:")
+    f_label = Label(control_frame, text="Valore di f:")
     f_label.grid(row=2, column=2,sticky="e")
 
-    fBox = Entry(root, width=20)
-    fBox.grid(row=2, column=3,)
+    fBox = Entry(control_frame, width=20)
+    fBox.grid(row=2, column=3)
 
-    d_label = Label(root, text="Valore di d:")
-    d_label.grid(row=2, column=4, sticky="e")
+    d_label = Label(control_frame,  text="Valore di d:")
+    d_label.grid(row=2, column=4,sticky="e")
 
-    dBox = Entry(root, width=20)
+    dBox = Entry(control_frame,  width=20)
     dBox.grid(row=2, column=5)
 
-    caricaImmagine = Button(root, text="Seleziona immagine", padx=5, command=lambda: loadImage(root, img_label))
-    caricaImmagine.grid(row=2, column=0)
+    caricaImmagine = Button(control_frame, text="Seleziona immagine", padx=25, command=lambda: loadImage(root, img_label))
+    caricaImmagine.grid(row=2, column=0, padx=15)
 
-    conversionButton = Button(root, text="Converti",  padx=5, command=lambda: startConversion(fBox, dBox, root, img_label_result))
-    conversionButton.grid(row=2, column=1)
+    conversionButton = Button(control_frame, text="Converti",   command=lambda: startConversion(fBox, dBox, root, img_label_result))
+    conversionButton.grid(row=2, column=1, padx=15)
 
     root.mainloop()
 
