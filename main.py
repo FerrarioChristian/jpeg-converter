@@ -39,11 +39,18 @@ def loadImage_result(img_label_result):
 
 def startConversion(fBox, dBox, root, img_label_result):
     # Prendi i valori dai campi di testo
+
+    if not fBox.get().strip() or not dBox.get().strip():
+        messagebox.showerror("Errore", "Inserisci valori validi per f e d.")
+        return
     f_value = int(fBox.get())
     d_value = int(dBox.get())
 
     print(f"Valori inseriti: {f_value}, {d_value}")
-
+    if not hasattr(root, 'selected_file') or root.selected_file is None:
+        messagebox.showerror("Errore", "Seleziona un'immagine prima di procedere.")
+        return
+    
     # Verifica che i valori siano nel range corretto
     if f_value <= 0 or d_value <= 0 or d_value > 2 * f_value - 2:
         messagebox.showerror(
@@ -61,6 +68,8 @@ def startConversion(fBox, dBox, root, img_label_result):
 
 def main():
     root = Tk()
+
+    root.title("image converter")
     root.state('zoomed')
     
     # Imposta il background nero
@@ -78,27 +87,27 @@ def main():
     root.grid_columnconfigure(2, weight=1)
 
     img_label = Label(root)
-    img_label.grid(row=1, column=1, padx=5, pady=5)
+    img_label.grid(row=1, column=0, columnspan=3)
 
     img_label_result = Label(root)
-    img_label_result.grid(row=1, column=2, padx=5, pady=5)
+    img_label_result.grid(row=1, column=2, columnspan=3)
 
     f_label = Label(root, text="Valore di f:")
-    f_label.grid(row=2, column=2, padx=5, pady=5, sticky="e")
+    f_label.grid(row=2, column=2,sticky="e")
 
     fBox = Entry(root, width=20)
-    fBox.grid(row=2, column=3, padx=5, pady=5)
+    fBox.grid(row=2, column=3,)
 
     d_label = Label(root, text="Valore di d:")
-    d_label.grid(row=2, column=4, padx=5, pady=5, sticky="e")
+    d_label.grid(row=2, column=4, sticky="e")
 
     dBox = Entry(root, width=20)
-    dBox.grid(row=2, column=5, padx=5, pady=5)
+    dBox.grid(row=2, column=5)
 
-    caricaImmagine = Button(root, text="Seleziona immagine", padx=50, command=lambda: loadImage(root, img_label))
+    caricaImmagine = Button(root, text="Seleziona immagine", padx=5, command=lambda: loadImage(root, img_label))
     caricaImmagine.grid(row=2, column=0)
 
-    conversionButton = Button(root, text="Converti",  padx=50, command=lambda: startConversion(fBox, dBox, root, img_label_result))
+    conversionButton = Button(root, text="Converti",  padx=5, command=lambda: startConversion(fBox, dBox, root, img_label_result))
     conversionButton.grid(row=2, column=1)
 
     root.mainloop()
