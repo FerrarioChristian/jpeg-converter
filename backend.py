@@ -1,7 +1,7 @@
 # from sys import maxsize as sys_maxsize
 
 import os
-
+from PIL import Image
 import cv2
 import numpy as np
 
@@ -12,10 +12,10 @@ def load_image(image_path):
     """
     Carica un'immagine in scala di grigi.
     """
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    image = Image.open(image_path).convert("L")  # Converti in scala di grigi
     if image is None:
         raise ValueError(f"Impossibile caricare l'immagine da {image_path}")
-    return image
+    return np.array(image)
 
 
 def cut_image(image, f):
@@ -42,6 +42,8 @@ def backend_func(imageUrl, f, d):
     image = cut_image(image, f)
 
     r, l = image.shape
+    print(r)
+    print(l)
     image = image - 128
 
     div = np.zeros((f, f))
@@ -53,23 +55,24 @@ def backend_func(imageUrl, f, d):
 
     for i in range(0, r, f):
         for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
-                image[i : i + f, j : j + f] = np.multiply(
-                    image[i : i + f, j : j + f], div
-                )
+            
+            image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
+            image[i : i + f, j : j + f] = np.multiply(
+                image[i : i + f, j : j + f], div
+            )
 
     for i in range(0, r, f):
         for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
+            
+            image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
 
     image = image + 128
 
+    image = np.clip(image, 0, 255).astype(np.uint8)
     print("Risultato: ")
     print(f"{image.shape}")
     print(np.round(image, 2))
 
-    image = np.clip(image, 0, 255).astype(np.uint8)
+ 
     os.makedirs("./results", exist_ok=True)
     cv2.imwrite("./results/result.bmp", image)
