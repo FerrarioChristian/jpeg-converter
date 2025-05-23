@@ -29,7 +29,7 @@ def main():
     print_state("Immagine dopo IDCT: ", image)
 
     image = np.clip(image, 0, 255).astype(np.uint8)
-    cv2.imwrite("result.bmp", image)
+    cv2.imwrite("/results/result.bmp", image)
 
 
 def apply_dct(image, f, D):

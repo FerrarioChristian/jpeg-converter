@@ -3,15 +3,31 @@ import numpy as np
 import dct
 
 test1 = [231, 32, 233, 161, 24, 71, 140, 245]
+expected1 = np.array(
+    [4.01e02, 6.60e00, 1.09e02, -1.12e02, 6.54e01, 1.21e02, 1.16e02, 2.88e01]
+)
+
 
 base = dct.dct_base(test1.__len__())
 dct1 = dct.dct(test1, base)
-print("DCT: ", end="")
+print("DCT:\n", end="")
 for i in range(len(test1)):
     print(f"{dct1[i]:.2e}", end=", ")
-idct1 = dct.idct(dct1, base)
-print("\nIDCT: ", idct1)
+print("\nExpected:\n", end="")
+for i in range(len(test1)):
+    print(f"{expected1[i]:.2e}", end=", ")
 
+# --- Verifica della tolleranza ---
+tolerance = 1e-2
+relative_error = np.abs((dct1 - expected1) / dct1)
+max_error = np.max(relative_error)
+
+print(f"\nTolleranza {tolerance:.0e}")
+print(f"Max relative error: {max_error:.2e}")
+if np.all(relative_error < tolerance):
+    print("✅ Test passed: all differences are within the tolerance.")
+else:
+    print("❌ Test failed: some differences exceed the tolerance.")
 
 test2 = [
     [231, 32, 233, 161, 24, 71, 140, 245],
@@ -23,10 +39,36 @@ test2 = [
     [193, 70, 174, 167, 41, 30, 127, 245],
     [87, 149, 57, 192, 65, 129, 178, 228],
 ]
+expected2 = np.array(
+    [
+        [1.11e03, 4.40e01, 7.59e01, -1.38e02, 3.50e00, 1.22e02, 1.95e02, -1.01e02],
+        [7.71e01, 1.14e02, -2.18e01, 4.13e01, 8.77e00, 9.90e01, 1.38e02, 1.09e01],
+        [4.48e01, -6.27e01, 1.11e02, -7.63e01, 1.24e02, 9.55e01, -3.98e01, 5.85e01],
+        [-6.99e01, -4.02e01, -2.34e01, -7.67e01, 2.66e01, -3.68e01, 6.61e01, 1.25e02],
+        [-1.09e02, -4.33e01, -5.55e01, 8.17e00, 3.02e01, -2.86e01, 2.44e00, -9.41e01],
+        [-5.38e00, 5.66e01, 1.73e02, -3.54e01, 3.23e01, 3.34e01, -5.81e01, 1.90e01],
+        [7.88e01, -6.45e01, 1.18e02, -1.50e01, -1.37e02, -3.06e01, -1.05e02, 3.98e01],
+        [1.97e01, -7.81e01, 9.72e-01, -7.23e01, -2.15e01, 8.13e01, 6.37e01, 5.90e00],
+    ]
+)
+
 base2 = dct.dct_base(test2.__len__())
 dct2 = dct.dct2(test2, base2)
-print("\nDCT2: ", end="")
+print("\n\nDCT2:\n", end="")
 np.set_printoptions(precision=2)
 print(dct2)
-idct2 = dct.idct2(dct2, base2)
-print("IDCT2: ", idct2)
+print("Expected:\n", end="")
+print(expected2)
+
+
+# --- Verifica della tolleranza ---
+tolerance = 1e-2
+relative_error = np.abs((dct2 - expected2) / dct2)
+max_error = np.max(relative_error)
+
+print(f"\nTolleranza {tolerance:.0e}")
+print(f"Max relative error: {max_error:.2e}")
+if np.all(relative_error < tolerance):
+    print("✅ Test passed: all differences are within the tolerance.")
+else:
+    print("❌ Test failed: some differences exceed the tolerance.")
