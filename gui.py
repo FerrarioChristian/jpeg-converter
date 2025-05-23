@@ -1,10 +1,9 @@
 from tkinter import *
 from tkinter import filedialog, messagebox
 
-import numpy as np
 from PIL import Image, ImageTk
 
-from backend import backend_func, load_image
+from backend import backend_func
 
 
 def loadImage(root, img_label):
@@ -39,8 +38,6 @@ def loadImage_result(img_label_result):
 
 
 def startConversion(fBox, dBox, root, img_label_result):
-    # Prendi i valori dai campi di testo
-
     if not hasattr(root, "selected_file") or root.selected_file is None:
         messagebox.showerror("Errore", "Seleziona un'immagine prima di procedere")
         return
