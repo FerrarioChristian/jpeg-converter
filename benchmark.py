@@ -102,7 +102,7 @@ def benchmark_dct(sizes):
 
 
 def main():
-    sizes_to_test = [32, 64, 128, 256, 512, 1024]
+    sizes_to_test = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
     times_scipy, times_custom = benchmark_dct(sizes_to_test)
     plot_benchmarks(sizes_to_test, times_scipy, times_custom)
 

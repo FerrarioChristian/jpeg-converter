@@ -26,7 +26,7 @@ def loadImage(root, img_label):
 
 
 def loadImage_result(img_label_result):
-    file_path = "./images/result.bmp"
+    file_path = "./results/result.bmp"
 
     if file_path:
         img = Image.open(file_path)
@@ -41,22 +41,37 @@ def loadImage_result(img_label_result):
 def startConversion(fBox, dBox, root, img_label_result):
     # Prendi i valori dai campi di testo
 
-    if not fBox.get().strip() or not dBox.get().strip():
-        messagebox.showerror("Errore", "Inserisci valori validi per f e d.")
+    if not hasattr(root, "selected_file") or root.selected_file is None:
+        messagebox.showerror("Errore", "Seleziona un'immagine prima di procedere")
         return
+
+    if not fBox.get().strip():
+        messagebox.showerror(
+            "Errore", "Inserisci un valore valido per F (maggiore di 0)"
+        )
+        return
+
     f_value = int(fBox.get())
+
+    if not dBox.get().strip():
+        messagebox.showerror(
+            "Errore",
+            f"Inserisci un valore valido per D (compreso tra 0 e {2 * f_value - 2})",
+        )
+        return
+
     d_value = int(dBox.get())
 
     print(f"Valori inseriti: {f_value}, {d_value}")
-    if not hasattr(root, "selected_file") or root.selected_file is None:
-        messagebox.showerror("Errore", "Seleziona un'immagine prima di procedere.")
+
+    if f_value < 1:
+        messagebox.showerror("Errore", "Il valore di F deve essere maggiore di 0")
         return
 
-    # Verifica che i valori siano nel range corretto
-    if f_value <= 0 or d_value <= 0 or d_value > 2 * f_value - 2:
+    if d_value < 0 or d_value > 2 * f_value - 2:
         messagebox.showerror(
             "Valori non validi",
-            f"Errore: f e d devono essere positivi, d deve essere minore di {2 * f_value - 2}",
+            f"Errore: Il valore di D deve essere compreso tra 0 e {2 * f_value - 2}",
         )
         return
 

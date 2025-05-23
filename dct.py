@@ -12,11 +12,11 @@ def dct_base(n):
 
 
 def dct(f, D):
-    return np.dot(D, f)
+    return D @ f
 
 
 def idct(c, D):
-    return np.dot(D.T, c)
+    return D.T @ c
 
 
 def dct2(f, D):
