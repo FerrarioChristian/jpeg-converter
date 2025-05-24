@@ -1,9 +1,8 @@
-from tkinter import *
-from tkinter import filedialog, messagebox
+from tkinter import Button, Entry, Frame, Label, Tk, filedialog, messagebox
 
 from PIL import Image, ImageTk
 
-from backend import backend_func
+from converter.backend import compress
 
 
 def loadImage(root, img_label):
@@ -73,7 +72,7 @@ def startConversion(fBox, dBox, root, img_label_result):
         return
 
     try:
-        backend_func(
+        compress(
             root.selected_file, f_value, d_value
         )  # Chiama la funzione di conversione
         loadImage_result(
@@ -83,7 +82,7 @@ def startConversion(fBox, dBox, root, img_label_result):
         print(f"Errore durante la conversione: {e}")
 
 
-def main():
+def launch_gui():
     root = Tk()
 
     root.title("Caravaggio-converter")
@@ -95,7 +94,7 @@ def main():
     # Permetti il ridimensionamento della finestra
     root.resizable(True, True)
 
-    bg_img = Image.open("Caravaggio.jpg")
+    bg_img = Image.open("./gui/resources/caravaggio.jpg")
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     bg_img = bg_img.resize((screen_width, screen_height))
@@ -154,4 +153,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    launch_gui()

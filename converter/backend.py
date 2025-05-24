@@ -1,0 +1,131 @@
+import os
+
+import cv2
+import numpy as np
+from PIL import Image
+
+from converter.dct import dct2, dct_base, idct2
+
+
+def compress(image_path, f, d):
+    image = load_image(image_path).astype(np.float32)
+
+    check_parameters(f, d, min(image.shape))
+
+    print_state("Immagine originale: ", image)
+
+    D = dct_base(f)
+
+    image = cut_image(image, f)
+    image = apply_dct(image, f, D)
+    image = cut_frequencies(image, f, d)
+
+    print_state("Immagine dopo DCT: ", image)
+
+    image = apply_idct(image, f, D)
+
+    print_state("Immagine dopo IDCT: ", image)
+
+    image = np.clip(image, 0, 255).astype(np.uint8)
+    os.makedirs("./results", exist_ok=True)
+    cv2.imwrite("./results/result.bmp", image)
+    print("Immagine salvata in ./results/result.bmp")
+
+
+def apply_dct(image, f, D):
+    """
+    Applica la DCT a blocchi di dimensione f x f dell'immagine.
+    """
+    r, l = image.shape
+    image = image - 128
+
+    for i in range(0, r, f):
+        for j in range(0, l, f):
+            if i + f <= r and j + f <= l:
+                image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
+
+    return image
+
+
+def apply_idct(image, f, D):
+    """
+    Applica la IDCT a blocchi di dimensione f x f dell'immagine.
+    """
+    r, l = image.shape
+
+    for i in range(0, r, f):
+        for j in range(0, l, f):
+            if i + f <= r and j + f <= l:
+                image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
+
+    image = image + 128
+
+    return image
+
+
+def cut_frequencies(image, f, d):
+    div = np.zeros((f, f))
+    for i in range(f):
+        for j in range(f):
+            if (i + j) < d:
+                div[i, j] = 1
+
+    for i in range(0, image.shape[0], f):
+        for j in range(0, image.shape[1], f):
+            if i + f <= image.shape[0] and j + f <= image.shape[1]:
+                image[i : i + f, j : j + f] = np.multiply(
+                    image[i : i + f, j : j + f], div
+                )
+    return image
+
+
+def cut_image(image, f):
+    """
+    Taglia l'immagine in modo che le dimensioni siano multipli di f.
+    """
+    r, l = image.shape
+    r = r - (r % f)
+    l = l - (l % f)
+    image = image[0:r, 0:l]
+
+    return image
+
+
+def load_image(image_path):
+    """
+    Carica un'immagine in scala di grigi.
+    """
+    image = Image.open(image_path).convert("L")  # Converti in scala di grigi
+    if image is None:
+        raise ValueError(f"Impossibile caricare l'immagine da {image_path}")
+    return np.array(image)
+
+
+def input_value(msg, min, max):
+    while True:
+        try:
+            x = int(input(msg))
+            if x >= min and x <= max:
+                return x
+        except:
+            pass
+        print(f"Inserisci un numero intero tra {min} e {max}.")
+
+
+def print_state(msg, matrix):
+    """
+    Stampa lo stato della matrice.
+    """
+    print(msg)
+    print(f"{matrix.shape}")
+    print(matrix)
+
+
+def check_parameters(f, d, max_f):
+    """
+    Controlla i parametri f e d.
+    """
+    if f < 1 or f > 64:
+        raise ValueError(f"Il valore di F deve essere compreso tra 1 e {max_f}")
+    if d < 0 or d > 2 * f - 2:
+        raise ValueError(f"Il valore di D deve essere compreso tra 0 e {2 * f - 2}")

@@ -2,126 +2,57 @@
 
 import os
 
-import cv2
-import numpy as np
-from PIL import Image
+from cli import parse_arguments
+from converter.backend import compress
+from gui.gui import launch_gui
 
-from dct import dct2, dct_base, idct2
+args = parse_arguments()
+f = args.f
+d = args.d
+image_path = args.input
 
 
 def main():
-    image = load_image("./images/cathedral.bmp").astype(np.float32)
-
-    f = input_value(f"Numero tra 1 e {min(image.shape)}: ", 1, min(image.shape))
-    d = input_value(f"Numero tra 0 e {2*f - 2}: ", 0, 2 * f - 2)
-
-    print_state("Immagine originale: ", image)
-
-    D = dct_base(f)
-
-    image = cut_image(image, f)
-    image = apply_dct(image, f, D)
-    image = cut_frequencies(image, f, d)
-
-    print_state("Immagine dopo DCT: ", image)
-
-    image = apply_idct(image, f, D)
-
-    print_state("Immagine dopo IDCT: ", image)
-
-    image = np.clip(image, 0, 255).astype(np.uint8)
-    os.makedirs("./results", exist_ok=True)
-    cv2.imwrite("./results/result.bmp", image)
-    print("Immagine salvata in ./results/result.bmp")
-
-
-def apply_dct(image, f, D):
     """
-    Applica la DCT a blocchi di dimensione f x f dell'immagine.
+    Main function to handle the compression process.
+    It checks if the necessary parameters are provided. If not, it launches the GUI.
+    If the parameters are valid, it calls the compress function to process the image.
+    Parameters:
+        f (int): The size of the blocks for DCT.
+        d (int): The number of frequencies to keep.
+        image_path (str): The path to the image file to be compressed.
     """
-    r, l = image.shape
-    image = image - 128
+    if f is None or d is None or image_path is None:
+        print("Parameter missing. Launching GUI...")
+        launch_gui()
+        return
 
-    for i in range(0, r, f):
-        for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = dct2(image[i : i + f, j : j + f], D)
+    try:
+        check_image_validity(image_path)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}")
+        return
 
-    return image
+    print(f"Valori inseriti: {f}, {d}, {image_path}")
+
+    compress(image_path, f, d)
 
 
-def apply_idct(image, f, D):
+def check_image_validity(image_path):
     """
-    Applica la IDCT a blocchi di dimensione f x f dell'immagine.
+    Checks if the image file exists and is a valid image.
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file is not a valid image.
     """
-    r, l = image.shape
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"The file {image_path} does not exist.")
 
-    for i in range(0, r, f):
-        for j in range(0, l, f):
-            if i + f <= r and j + f <= l:
-                image[i : i + f, j : j + f] = idct2(image[i : i + f, j : j + f], D)
+    if not os.path.isfile(image_path):
+        raise ValueError(f"{image_path} is not a valid file.")
 
-    image = image + 128
-
-    return image
-
-
-def cut_frequencies(image, f, d):
-    div = np.zeros((f, f))
-    for i in range(f):
-        for j in range(f):
-            if (i + j) < d:
-                div[i, j] = 1
-
-    for i in range(0, image.shape[0], f):
-        for j in range(0, image.shape[1], f):
-            if i + f <= image.shape[0] and j + f <= image.shape[1]:
-                image[i : i + f, j : j + f] = np.multiply(
-                    image[i : i + f, j : j + f], div
-                )
-    return image
-
-
-def cut_image(image, f):
-    """
-    Taglia l'immagine in modo che le dimensioni siano multipli di f.
-    """
-    r, l = image.shape
-    r = r - (r % f)
-    l = l - (l % f)
-    image = image[0:r, 0:l]
-
-    return image
-
-
-def load_image(image_path):
-    """
-    Carica un'immagine in scala di grigi.
-    """
-    image = Image.open(image_path).convert("L")  # Converti in scala di grigi
-    if image is None:
-        raise ValueError(f"Impossibile caricare l'immagine da {image_path}")
-    return np.array(image)
-
-
-def input_value(msg, min, max):
-    while True:
-        try:
-            x = int(input(msg))
-            if x >= min and x <= max:
-                return x
-        except:
-            pass
-        print(f"Inserisci un numero intero tra {min} e {max}.")
-
-
-def print_state(msg, matrix):
-    """
-    Stampa lo stato della matrice.
-    """
-    print(msg)
-    print(f"{matrix.shape}")
-    print(matrix)
+    if not image_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
+        raise ValueError(f"The file {image_path} is not a valid image.")
 
 
 if __name__ == "__main__":
