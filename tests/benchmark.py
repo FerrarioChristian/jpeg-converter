@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import dct, idct
 
-from converter.dct import dct2 as custom_dct2
-from converter.dct import dct_base as custom_dct_base
-from converter.dct import idct2 as custom_idct2
+from converter import dct2 as custom_dct2
+from converter import dct_base as custom_dct_base
+from converter import idct2 as custom_idct2
 
 
 def scipy_dct2(a):

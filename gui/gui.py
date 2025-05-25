@@ -2,13 +2,13 @@ from tkinter import Button, Entry, Frame, Label, Tk, filedialog, messagebox
 
 from PIL import Image, ImageTk
 
-from converter.backend import compress
+from converter import compress
 
 
 def loadImage(root, img_label):
     file_path = filedialog.askopenfilename(
-        title="Seleziona immagine",
-        filetypes=[("Immagini", ("*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"))],
+        title="Select an image",
+        filetypes=[("Images", ("*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"))],
         initialdir="./images",
     )
 
@@ -38,12 +38,12 @@ def loadImage_result(img_label_result):
 
 def startConversion(fBox, dBox, root, img_label_result):
     if not hasattr(root, "selected_file") or root.selected_file is None:
-        messagebox.showerror("Errore", "Seleziona un'immagine prima di procedere")
+        messagebox.showerror("Error", "Please select an image first.")
         return
 
     if not fBox.get().strip():
         messagebox.showerror(
-            "Errore", "Inserisci un valore valido per F (maggiore di 0)"
+            "Error", "Please enter a valid value for F (greater than 0)"
         )
         return
 
@@ -51,23 +51,23 @@ def startConversion(fBox, dBox, root, img_label_result):
 
     if not dBox.get().strip():
         messagebox.showerror(
-            "Errore",
-            f"Inserisci un valore valido per D (compreso tra 0 e {2 * f_value - 2})",
+            "Error",
+            f"Please enter a valid value for D (between 0 and {2 * f_value - 2})",
         )
         return
 
     d_value = int(dBox.get())
 
-    print(f"Valori inseriti: {f_value}, {d_value}")
+    print(f"Selected values: f:{f_value}, d:{d_value}")
 
     if f_value < 1:
-        messagebox.showerror("Errore", "Il valore di F deve essere maggiore di 0")
+        messagebox.showerror("Error", "The value of F must be greater than 0")
         return
 
     if d_value < 0 or d_value > 2 * f_value - 2:
         messagebox.showerror(
-            "Valori non validi",
-            f"Errore: Il valore di D deve essere compreso tra 0 e {2 * f_value - 2}",
+            "Invalid values",
+            f"Error: The value of D must be between 0 and {2 * f_value - 2}",
         )
         return
 
@@ -79,7 +79,7 @@ def startConversion(fBox, dBox, root, img_label_result):
             img_label_result
         )  # <-- carica l'immagine generata dopo la conversione
     except Exception as e:
-        print(f"Errore durante la conversione: {e}")
+        print(f"An error occurred during conversion: {e}")
 
 
 def launch_gui():
@@ -122,13 +122,13 @@ def launch_gui():
     img_label_result = Label(root)
     img_label_result.grid(row=1, column=2)
 
-    f_label = Label(control_frame, text="Valore di f:")
+    f_label = Label(control_frame, text="F value:")
     f_label.grid(row=2, column=2, sticky="e")
 
     fBox = Entry(control_frame, width=20)
     fBox.grid(row=2, column=3)
 
-    d_label = Label(control_frame, text="Valore di d:")
+    d_label = Label(control_frame, text="D value:")
     d_label.grid(row=2, column=4, sticky="e")
 
     dBox = Entry(control_frame, width=20)
@@ -136,7 +136,7 @@ def launch_gui():
 
     caricaImmagine = Button(
         control_frame,
-        text="Seleziona immagine",
+        text="Load Image",
         padx=25,
         command=lambda: loadImage(root, img_label),
     )
@@ -144,7 +144,7 @@ def launch_gui():
 
     conversionButton = Button(
         control_frame,
-        text="Converti",
+        text="Compress",
         command=lambda: startConversion(fBox, dBox, root, img_label_result),
     )
     conversionButton.grid(row=2, column=1, padx=15)

@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from converter.dct import dct2, dct_base, idct2
+from converter import dct2, dct_base, idct2
 
 
 def compress(image_path, f, d):
@@ -12,7 +12,7 @@ def compress(image_path, f, d):
 
     check_parameters(f, d, min(image.shape))
 
-    print_state("Immagine originale: ", image)
+    print_state("Original image: ", image)
 
     D = dct_base(f)
 
@@ -20,16 +20,16 @@ def compress(image_path, f, d):
     image = apply_dct(image, f, D)
     image = cut_frequencies(image, f, d)
 
-    print_state("Immagine dopo DCT: ", image)
+    print_state("Image after DCT: ", image)
 
     image = apply_idct(image, f, D)
 
-    print_state("Immagine dopo IDCT: ", image)
+    print_state("Image after IDCT: ", image)
 
     image = np.clip(image, 0, 255).astype(np.uint8)
     os.makedirs("./results", exist_ok=True)
     cv2.imwrite("./results/result.bmp", image)
-    print("Immagine salvata in ./results/result.bmp")
+    print("Image saved at ./results/result.bmp")
 
 
 def apply_dct(image, f, D):
@@ -97,7 +97,7 @@ def load_image(image_path):
     """
     image = Image.open(image_path).convert("L")  # Converti in scala di grigi
     if image is None:
-        raise ValueError(f"Impossibile caricare l'immagine da {image_path}")
+        raise ValueError(f"Fail to load image from {image_path}")
     return np.array(image)
 
 
@@ -109,7 +109,7 @@ def input_value(msg, min, max):
                 return x
         except:
             pass
-        print(f"Inserisci un numero intero tra {min} e {max}.")
+        print(f"The value must be an integer between {min} and {max}")
 
 
 def print_state(msg, matrix):
@@ -125,7 +125,9 @@ def check_parameters(f, d, max_f):
     """
     Controlla i parametri f e d.
     """
-    if f < 1 or f > 64:
-        raise ValueError(f"Il valore di F deve essere compreso tra 1 e {max_f}")
+    if f < 1 or f > max_f:
+        raise ValueError(
+            f"The value of F must be greater than 0 and less than or equal to {max_f}"
+        )
     if d < 0 or d > 2 * f - 2:
-        raise ValueError(f"Il valore di D deve essere compreso tra 0 e {2 * f - 2}")
+        raise ValueError(f"The value of D must be between 0 and {2 * f - 2}")

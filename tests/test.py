@@ -5,27 +5,34 @@ from converter import dct
 TOLERANCE = 1e-2
 
 
+def main():
+    """Function to run the DCT tests."""
+    print("Tolerance:", TOLERANCE)
+    test_dct_1d()
+    test_dct_2d()
+
+
 def compare_results(actual, expected, tol, test_name):
-    """Confronta il risultato ottenuto con quello atteso entro una certa tolleranza."""
+    """Compares the actual and expected results of a test and prints the results."""
     relative_error = np.abs((actual - expected) / actual)
     max_error = np.max(relative_error)
 
-    print(f"\n--- Risultati del Test: {test_name} ---")
+    print(f"\n--- Test results: {test_name} ---")
 
     if np.all(relative_error < tol):
-        print("✅ Test superato: Tutte le differenze rientrano nella tolleranza.")
+        print("✅ Test passed: All differences are within the tolerance.")
     else:
-        print("❌ Test fallito: Alcune differenze superano la tolleranza.")
+        print("❌ Test failed: Some differences exceed the tolerance.")
 
-    print(f"Errore Relativo Massimo: {max_error:.2e}")
-    print("\nRisultato Ottenuto:")
+    print(f"Maximum relative error: {max_error:.2e}")
+    print("\nActual result:")
     if actual.ndim > 1:
         np.set_printoptions(precision=2)
         print(actual)
     else:
         print(", ".join(f"{x:.2e}" for x in actual))
 
-    print("\nRisultato Atteso:")
+    print("\nExpected result:")
     if expected.ndim > 1:
         np.set_printoptions(precision=2)
         print(expected)
@@ -34,7 +41,7 @@ def compare_results(actual, expected, tol, test_name):
 
 
 def test_dct_1d():
-    """Test della DCT su un array 1D."""
+    """Test of the DCT on a 1D array."""
     test_data = [231, 32, 233, 161, 24, 71, 140, 245]
     expected_result = np.array(
         [4.01e02, 6.60e00, 1.09e02, -1.12e02, 6.54e01, 1.21e02, 1.16e02, 2.88e01]
@@ -45,7 +52,7 @@ def test_dct_1d():
 
 
 def test_dct_2d():
-    """Test della DCT su un array 2D."""
+    """Test of the DCT on a 2D array."""
     test_data = [
         [231, 32, 233, 161, 24, 71, 140, 245],
         [247, 40, 248, 245, 124, 204, 36, 107],
@@ -110,6 +117,4 @@ def test_dct_2d():
 
 
 if __name__ == "__main__":
-    print("Tolleranza:", TOLERANCE)
-    test_dct_1d()
-    test_dct_2d()
+    main()

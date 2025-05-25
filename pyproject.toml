@@ -1,0 +1,31 @@
+[project]
+name = "jpeg-converter"
+version = "0.1.0"
+description = "Program that use Discrete Cosine Transform to compress images in JPEG format."
+readme = "README.md"
+authors = [
+  { name = "Ferrario Christian", email = "c.ferrario30@campus.unimib.it" },
+  { name = "Lanza Andrea", email = "a.lanza13@campus.unimib.it" },
+]
+requires-python = ">=3.8"
+
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["converter", "tests"]
+
+[project.scripts]
+run-test = "tests.test:main"
+run-gui = "gui.gui:launch_gui"
+run-benchmark = "tests.benchmark:main"
+run = "main:main"

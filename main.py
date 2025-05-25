@@ -1,10 +1,8 @@
-# from sys import maxsize as sys_maxsize
-
 import os
 
 from cli import parse_arguments
-from converter.backend import compress
-from gui.gui import launch_gui
+from converter import compress
+from gui import launch_gui
 
 args = parse_arguments()
 f = args.f
@@ -33,7 +31,7 @@ def main():
         print(f"Error: {e}")
         return
 
-    print(f"Valori inseriti: {f}, {d}, {image_path}")
+    print(f"Arguments value: f:{f}, f:{d}, image_path:{image_path}")
 
     compress(image_path, f, d)
 
