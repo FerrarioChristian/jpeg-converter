@@ -22,10 +22,10 @@ classifiers = [
 dependencies = []
 
 [tool.setuptools.packages.find]
-include = ["converter", "tests"]
+include = ["converter", "tests", "gui", "main"]
 
 [project.scripts]
 run-test = "tests.test:main"
-run-gui = "gui.gui:launch_gui"
+run-gui = "gui:launch_gui"
 run-benchmark = "tests.benchmark:main"
 run = "main:main"

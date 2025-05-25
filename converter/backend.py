@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from converter import dct2, dct_base, idct2
+from .dct import dct2, dct_base, idct2
 
 
 def compress(image_path, f, d):
