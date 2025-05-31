@@ -7,7 +7,7 @@ from PIL import Image
 from .dct import dct2, dct_base, idct2
 
 
-def compress(image_path, f, d):
+def compress(image_path, f, d, output_path="./results/result.bmp"):
     image = load_image(image_path).astype(np.float32)
 
     check_parameters(f, d, min(image.shape))
@@ -27,9 +27,9 @@ def compress(image_path, f, d):
     print_state("Image after IDCT: ", image)
 
     image = np.clip(image, 0, 255).astype(np.uint8)
-    os.makedirs("./results", exist_ok=True)
-    cv2.imwrite("./results/result.bmp", image)
-    print("Image saved at ./results/result.bmp")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    cv2.imwrite(output_path, image)
+    print("Image saved at ", output_path)
 
 
 def apply_dct(image, f, D):
