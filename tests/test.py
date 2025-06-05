@@ -1,6 +1,6 @@
 import numpy as np
 
-from converter import dct
+from converter import dct, dct2, dct_base
 
 TOLERANCE = 1e-2
 
@@ -46,8 +46,8 @@ def test_dct_1d():
     expected_result = np.array(
         [4.01e02, 6.60e00, 1.09e02, -1.12e02, 6.54e01, 1.21e02, 1.16e02, 2.88e01]
     )
-    base = dct.dct_base(len(test_data))
-    actual_result = dct.dct(test_data, base)
+    base = dct_base(len(test_data))
+    actual_result = dct(test_data, base)
     compare_results(actual_result, expected_result, TOLERANCE, "DCT 1D")
 
 
@@ -111,8 +111,8 @@ def test_dct_2d():
             ],
         ]
     )
-    base2 = dct.dct_base(len(test_data))
-    actual_result = dct.dct2(test_data, base2)
+    base2 = dct_base(len(test_data))
+    actual_result = dct2(test_data, base2)
     compare_results(actual_result, expected_result, TOLERANCE, "DCT 2D")
 
 

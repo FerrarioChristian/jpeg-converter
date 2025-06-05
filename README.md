@@ -52,6 +52,7 @@ python main.py --image path/to/image.bmp -f 8 -d 8
 ```
 
 ### Graphical User Interface (GUI)
+To run the GUI for image selection and compression parameters, you can use:
 ```bash
 run-gui # This will open the GUI for image selection and compression parameters
 ```
@@ -59,8 +60,9 @@ or
 ```bash
 python main.py
 ```
-
 The compressed image will be displayed next to the original, and saved to the results/ folder.
+> [!WARNING]
+> To run the GUI, ensure you have the `tkinter` library installed. If not, you can install it using your package manager (e.g., `apt-get install python3-tk` on Debian-based systems).
 
 ## Benchmarking
 To run the benchmark and generate the timing plot comparing your custom DCT2 with the SciPy version:
