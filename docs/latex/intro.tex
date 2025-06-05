@@ -1,0 +1,27 @@
+\section{Introduzione}
+
+\subsection{Obiettivi del progetto}
+Questo progetto si propone di analizzare e mettere in pratica le tecniche di compressione delle immagini tramite la Trasformata Discreta del Coseno bidimensionale (DCT), replicando un meccanismo simile a quello del formato JPEG (escludendo la quantizzazione). Gli obiettivi principali sono:
+
+\begin{itemize}
+    \item \textbf{Implementare la DCT da zero}, secondo la definizione vista a lezione, in un ambiente open-source a scelta, al fine di comprendere a fondo la struttura matematica della trasformazione e le sue implicazioni computazionali.
+
+    \item \textbf{Progettare un sistema di compressione} basato sulla DCT2, suddividendo l’immagine in blocchi quadrati di dimensione \( F \times F \), applicando la trasformata e filtrando i coefficienti in frequenza in base a una soglia \( d \).
+      
+    \item \textbf{Studiare l’impatto visivo della compressione} al variare dei parametri \( F \) e \( d \), valutando la qualità delle immagini risultanti e analizzando il compromesso tra perdita di informazione e riduzione dei dati.
+    
+    \item \textbf{Confrontare le prestazioni} (in termini di tempo di esecuzione) tra l’implementazione manuale e quella fornita dalla libreria dell’ambiente scelto (presumibilmente ottimizzata tramite FFT). Questo confronto ha lo scopo di evidenziare le differenze di complessità algoritmica tra l’approccio naïve (\( O(N^3) \)) e quello ottimizzato (\( O(N^2 \log N) \)).
+
+\end{itemize}
+
+\subsection{Descrizione del progetto}
+ Nella \textit{prima parte} del progetto, si richiede l'implementazione manuale della \textbf{DCT2}, come descritta a lezione, e la successiva comparazione in termini di tempo di esecuzione con l'implementazione ottimizzata fornita da una libreria open source, in questo caso la versione della libreria \textbf{SciPy}, in particolare del modulo \texttt{scipy.fftpack}. A tal fine, è stato utilizzato il linguaggio \textbf{Python} e la libreria \textbf{NumPy}, che mette a disposizione strumenti efficienti per il calcolo numerico e la manipolazione di array multidimensionali.\\
+
+La \textit{seconda parte} del progetto prevede la realizzazione di un'applicazione software con interfaccia grafica, che consenta all'utente di selezionare un'immagine e di eseguire una compressione tramite DCT2 su blocchi di dimensione decisa dall'utente, e con la possibilità di impostare una soglia di taglio delle alte frequenze. L'immagine risultante viene poi ricostruita applicando l'inversa della DCT2 sui blocchi modificati, e visualizzata a fianco dell'immagine originale per un confronto qualitativo.
+
+Tutte le componenti del progetto sono state realizzate utilizzando software open source, in linea con le specifiche richieste, ed i risultati sperimentali sono stati discussi per evidenziare vantaggi, limiti e possibili miglioramenti futuri.
+
+\subsection{Contesto teorico}
+La \textit{Discrete Cosine Transform} bidimensionale (DCT2) è uno strumento fondamentale nell’elaborazione e compressione delle immagini. Essa consente di rappresentare un'immagine in termini di frequenze spaziali, permettendo la separazione tra componenti a bassa e alta frequenza. Questo principio è alla base di formati di compressione come JPEG, dove le frequenze meno rilevanti possono essere eliminate o approssimate senza un degrado percettibile dell'immagine.\\
+
+Di seguito una spiegazione dettagliata della teoria dietro al metodo di compressione delle immagini tramite Trasformata Discreta del Coseno, e di come i parametri cambiano il comportamento della compressione.

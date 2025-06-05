@@ -1,0 +1,52 @@
+\section{Trasformata Discreta del Coseno}
+
+La \textbf{Discrete Cosine Transform} (DCT) è una trasformata lineare che rappresenta un segnale come combinazione di coseni a diverse frequenze. È simile alla trasformata di Fourier, ma utilizza solo funzioni coseno e fornisce coefficienti reali. La DCT è particolarmente efficace per la compressione di segnali con contenuto prevalentemente a bassa frequenza, come le immagini.
+
+\subsection{DCT monodimensionale}
+
+Data una sequenza $f = (f_0, f_1, \dots, f_{N-1})$, la DCT di tipo II è definita come:
+
+\[
+C_k = \alpha_k \sum_{j=0}^{N-1} f_j \cos\left( \frac{\pi}{N} \left(j + \frac{1}{2} \right) k \right), \quad \text{per } k = 0, \dots, N-1
+\]
+
+
+dove:
+\[
+\alpha_k = 
+\begin{cases}
+\sqrt{\frac{1}{N}} & \text{se } k = 0 \\
+\sqrt{\frac{2}{N}} & \text{se } k > 0
+\end{cases}
+\]
+
+Questa trasformata risulta ortonormale grazie alla scelta di questi coefficienti delle basi: la base della DCT è formata da vettori le cui componenti sono valori di coseni valutati a punti equispaziati. La trasformazione proietta il segnale sulla base dei coseni, ottenendo coefficienti $X_k$ che rappresentano l'importanza della $k$-esima frequenza.
+
+\subsection{DCT bidimensionale (DCT2)}
+
+Nel caso bidimensionale, tipico delle immagini, la DCT2 si applica a una matrice $A \in \mathbb{R}^{N \times N}$. Essa si può definire come:
+
+\[
+C_{k,\ell} = \alpha_k \alpha_\ell \sum_{i=0}^{N-1} \sum_{j=0}^{N-1}
+f_{i,j} \cos\left( \frac{\pi}{N} \left(i + \frac{1}{2} \right) k \right)
+\cos\left( \frac{\pi}{N} \left(j + \frac{1}{2} \right) \ell \right)
+\]
+
+per $k, \ell = 0, \dots, N-1$, dove $\alpha_k$ è definito come sopra.
+
+Alternativamente, si può esprimere in forma matriciale come:
+
+\[
+C = D A D^T
+\]
+
+dove $D$ è la matrice ortogonale contenente i coefficienti dei coseni (base della DCT monodimensionale). In pratica, la DCT2 si può calcolare applicando la DCT per righe e poi per colonne (o viceversa, grazie alla simmetria dell’operazione).
+
+
+\section*{Compressione JPEG}
+La compressione JPEG sfrutta la trasformata DCT per ridurre l’informazione contenuta nelle frequenze meno percepibili all’occhio umano. In particolare, la maggior parte dell’informazione visiva si concentra nelle frequenze più basse (variazioni lente di colore o intensità), mentre i dettagli fini, come bordi netti o pattern regolari, si trovano nelle frequenze alte.
+
+Quando si applica una soglia per tagliare le componenti ad alta frequenza, l’effetto più visibile è la perdita di dettaglio nelle aree dell’immagine dove il colore o la luminosità cambiano bruscamente, come i contorni o i pattern ad alto contrasto. Questo tipo di compressione introduce artefatti visivi tipici del JPEG, come la sfocatura dei bordi o l’effetto “blocco”.
+
+L’efficacia del metodo risiede nel fatto che il sistema visivo umano è meno sensibile alle alte frequenze, permettendo così una riduzione significativa dei dati senza una perdita apparente di qualità in molte situazioni.
+

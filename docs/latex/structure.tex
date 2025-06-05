@@ -1,0 +1,65 @@
+\section{Struttura della progetto}
+L’implementazione del progetto è stata organizzata in modo modulare, seguendo una separazione tra la \textbf{libreria} sviluppata e i \textbf{programmi eseguibili} che ne fa uso. Di seguito si descrivono le principali componenti.
+
+\begin{footnotesize}
+\begin{verbatim}
+jpeg-converter
+├── cli
+│   ├── __init__.py
+│   └── cli.py
+├── converter
+│   ├── __init__.py
+│   ├── backend.py
+│   └── dct.py
+├── gui
+│   ├── __init__.py
+│   ├── gui.py
+│   └── resources
+├── images
+│   ├── 160x160.bmp
+│   └── ...
+├── main.py
+├── pyproject.toml
+└── tests
+    ├── __init__.py
+    ├── benchmark.py
+    ├── parameters.py
+    └── test.py
+\end{verbatim}
+\end{footnotesize}
+
+\subsection{Panoramica generale}
+
+La root della repository contiene tre directory principali:
+
+\begin{itemize}
+    \item \texttt{converter/}: libreria contenente l’implementazione della logica della Discrete Cosine Transform e le funzioni che permettono di applicarla ad un immagine.
+    \item \texttt{cli/}: file contenenti la logica per avviare la compressione da linea di comando
+    \item \texttt{gui/}: file contenenti il necessario per avviare l'interfaccia grafica
+    \item \texttt{tests/}: file contenenti test e benchmark, spiegati di seguito.
+\end{itemize}
+
+Completano il progetto i file \texttt{pyproject.toml} e \texttt{requirements.txt}, che definiscono le dipendenze del progetto e script di esecuuzione.
+
+\subsection{Verifica della correttezza}
+
+Per verificare il corretto funzionamento dell'implementazione della DCT (Discrete Cosine Transform), sono stati eseguiti due test.\\
+
+È stato applicato l'algoritmo della DCT monodimensionale a un vettore di 8 valori:
+\begin{center}
+\texttt{[231, 32, 233, 161, 24, 71, 140, 245]}
+\end{center}
+Il risultato è stato confrontato con una trasformata attesa nota:
+\begin{center}
+\texttt{[4.01e+02, 6.60e+00, 1.09e+02, -1.12e+02, 6.54e+01, 1.21e+02, 1.16e+02, 2.88e+01]}
+\end{center}
+
+Analogamente, è stato considerato un blocco $8 \times 8$ di valori in scala di grigi. L'algoritmo DCT2 è stato applicato al blocco e i risultati ottenuti sono stati confrontati con i coefficienti attesi forniti nel testo del progetto.
+
+\subsubsection*{Criterio di verifica}
+Il confronto tra i risultati ottenuti e quelli attesi è stato effettuato in termini di errore relativo massimo, confrontando elemento per elemento le due matrici. Il test è considerato superato se tutti i valori presentano un errore relativo inferiore a una soglia prefissata $\varepsilon = 10^{-2}$.
+
+
+\subsection{Considerazioni}
+
+La struttura modulare del progetto garantisce una \textbf{buona separazione delle responsabilità}, facilita l’estensione e favorisce la riusabilità della libreria in altri contesti. Inoltre il convertitore può essere usato sia da linea di comando in modo rapido e veloce, oppure da interfaccia grafica, rendendolo versatile in diversi contesti.
