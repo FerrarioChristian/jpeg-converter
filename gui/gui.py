@@ -172,6 +172,18 @@ class JpegConverterApp(ctk.CTk):
         self.stats_label = ctk.CTkLabel(self.params_frame, text="Retained Frequencies: 100.0%", text_color="#a0a0a0", font=ctk.CTkFont(size=12))
         self.stats_label.grid(row=1, column=0, columnspan=5, sticky="w", pady=(2, 0))
         
+        # Row 2: Huffman Toggle
+        self.use_huffman_var = ctk.BooleanVar(value=True)
+        self.huffman_switch = ctk.CTkSwitch(
+            self.params_frame, text="Huffman Size Estimation", variable=self.use_huffman_var,
+            progress_color="#fafafa", button_color="#09090b", button_hover_color="#3f3f46"
+        )
+        self.huffman_switch.grid(row=2, column=0, columnspan=5, sticky="w", pady=(10, 0))
+        
+        # Row 3: Huffman Desc
+        self.huffman_desc = ctk.CTkLabel(self.params_frame, text="(Simulates accurate compression entropy instead of reading raw .bmp size)", text_color="#71717a", font=ctk.CTkFont(size=11))
+        self.huffman_desc.grid(row=3, column=0, columnspan=5, sticky="w", padx=(5, 0), pady=(2, 0))
+        
         # Status Label
         self.status_label = ctk.CTkLabel(self.controls_frame, text="Ready", text_color="#71717a")
         self.status_label.grid(row=0, column=2, padx=20, pady=15, sticky="e")
@@ -284,21 +296,32 @@ class JpegConverterApp(ctk.CTk):
     def _run_compression(self, f_value, d_value):
         try:
             gc.collect()
-            compress(self.selected_file, f_value, d_value)
-            self.after(0, self._compression_done, True, "./results/result.bmp")
+            use_huff = self.use_huffman_var.get()
+            result_data = compress(self.selected_file, f_value, d_value, use_huffman=use_huff)
+            self.after(0, self._compression_done, True, result_data)
         except Exception as e:
             self.after(0, self._compression_done, False, str(e))
             
-    def _compression_done(self, success, result_path):
+    def _compression_done(self, success, result_data):
         self.compress_btn.configure(state="normal")
         if success:
             self.status_label.configure(text="Compression complete")
-            bmp_kb = os.path.getsize(result_path) / 1024
-            self.res_info.configure(text=f"BMP Size: {bmp_kb:.1f} KB")
+            
+            if result_data["huffman_bytes"] is not None:
+                huffman_kb = result_data["huffman_bytes"] / 1024
+                size_str = f"Est. Size: {huffman_kb:.1f} KB"
+            else:
+                bmp_kb = os.path.getsize(result_data["output_path"]) / 1024
+                size_str = f"BMP Size: {bmp_kb:.1f} KB"
+                
+            psnr = result_data["psnr"]
+            mse = result_data["mse"]
+            
+            self.res_info.configure(text=f"{size_str} | PSNR: {psnr:.2f}dB | MSE: {mse:.1f}")
             self.load_result_image()
         else:
             self.status_label.configure(text="Error")
-            messagebox.showerror("Error", f"An error occurred during conversion:\n{result_path}")
+            messagebox.showerror("Error", f"An error occurred during conversion:\n{result_data}")
 
 def launch_gui():
     app = JpegConverterApp()

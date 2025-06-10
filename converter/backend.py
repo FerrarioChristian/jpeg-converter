@@ -1,3 +1,4 @@
+import math
 import os
 
 import cv2
@@ -5,9 +6,10 @@ import numpy as np
 from PIL import Image
 
 from .dct import dct2, dct_base, idct2
+from .huffman import calculate_huffman_size
 
 
-def compress(image_path, f, d, output_path="./results/result.bmp"):
+def compress(image_path, f, d, output_path="./results/result.bmp", use_huffman=True):
     image = load_image(image_path).astype(np.float32)
 
     check_parameters(f, d, min(image.shape))
@@ -17,19 +19,42 @@ def compress(image_path, f, d, output_path="./results/result.bmp"):
     D = dct_base(f)
 
     image = cut_image(image, f)
+    original_cut = np.copy(image)
+    
     image = apply_dct(image, f, D)
     image = cut_frequencies(image, f, d)
 
     print_state("Image after DCT: ", image)
+    
+    # Estimate size based on Huffman encoding of DCT coefficients
+    huffman_bytes = None
+    if use_huffman:
+        huffman_bytes = calculate_huffman_size(image)
 
     image = apply_idct(image, f, D)
 
     print_state("Image after IDCT: ", image)
 
     image = np.clip(image, 0, 255).astype(np.uint8)
+    original_cut_uint8 = np.clip(original_cut, 0, 255).astype(np.uint8)
+    
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cv2.imwrite(output_path, image)
+    
+    # Calculate MSE and PSNR
+    mse = np.mean((original_cut_uint8.astype(np.float32) - image.astype(np.float32)) ** 2)
+    psnr = 100.0 # max if MSE is 0
+    if mse > 0:
+        psnr = 10 * math.log10((255.0 ** 2) / mse)
+        
     print("Image saved at ", output_path)
+    
+    return {
+        "mse": mse,
+        "psnr": psnr,
+        "huffman_bytes": huffman_bytes,
+        "output_path": output_path
+    }
 
 
 def apply_dct(image, f, D):
