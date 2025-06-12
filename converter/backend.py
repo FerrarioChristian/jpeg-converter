@@ -1,4 +1,3 @@
-import math
 import os
 
 import cv2
@@ -6,8 +5,10 @@ import numpy as np
 from PIL import Image
 
 from .dct import dct2, dct_base, idct2
-from .huffman import calculate_huffman_size
 
+
+import math
+from .huffman import calculate_huffman_size
 
 def compress(image_path, f, d, output_path="./results/result.bmp", use_huffman=True):
     image = load_image(image_path).astype(np.float32)
@@ -47,13 +48,22 @@ def compress(image_path, f, d, output_path="./results/result.bmp", use_huffman=T
     if mse > 0:
         psnr = 10 * math.log10((255.0 ** 2) / mse)
         
+    # Generate Error Map (Difference Heatmap)
+    diff = cv2.absdiff(original_cut_uint8, image)
+    diff_enhanced = cv2.normalize(diff, None, 0, 255, cv2.NORM_MINMAX)
+    error_map = cv2.applyColorMap(diff_enhanced, cv2.COLORMAP_JET)
+    
+    error_map_path = os.path.join(os.path.dirname(output_path), "error_map.bmp")
+    cv2.imwrite(error_map_path, error_map)
+    
     print("Image saved at ", output_path)
     
     return {
         "mse": mse,
         "psnr": psnr,
         "huffman_bytes": huffman_bytes,
-        "output_path": output_path
+        "output_path": output_path,
+        "error_map_path": error_map_path
     }
 
 

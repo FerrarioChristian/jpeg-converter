@@ -184,9 +184,127 @@ class JpegConverterApp(ctk.CTk):
         self.huffman_desc = ctk.CTkLabel(self.params_frame, text="(Simulates accurate compression entropy instead of reading raw .bmp size)", text_color="#71717a", font=ctk.CTkFont(size=11))
         self.huffman_desc.grid(row=3, column=0, columnspan=5, sticky="w", padx=(5, 0), pady=(2, 0))
         
-        # Status Label
-        self.status_label = ctk.CTkLabel(self.controls_frame, text="Ready", text_color="#71717a")
-        self.status_label.grid(row=0, column=2, padx=20, pady=15, sticky="e")
+        # Extra Features Frame
+        self.extras_frame = ctk.CTkFrame(self.controls_frame, fg_color="transparent")
+        self.extras_frame.grid(row=0, column=2, padx=20, pady=15, sticky="e")
+        
+        self.error_map_btn = ctk.CTkButton(
+            self.extras_frame, text="Show Error Map", 
+            fg_color="#3b82f6", hover_color="#2563eb", text_color="white",
+            state="disabled", command=self.show_error_map
+        )
+        self.error_map_btn.pack(side="top", pady=(0, 5))
+        
+        self.zoom_btn = ctk.CTkButton(
+            self.extras_frame, text="Zoom", 
+            fg_color="#6366f1", hover_color="#4f46e5", text_color="white",
+            state="disabled", command=self.open_zoom
+        )
+        self.zoom_btn.pack(side="top", pady=(0, 10))
+        
+        self.status_label = ctk.CTkLabel(self.extras_frame, text="Ready", text_color="#71717a")
+        self.status_label.pack(side="bottom")
+
+    def open_zoom(self):
+        if hasattr(self, 'selected_file') and os.path.exists("./results/result.bmp"):
+            try:
+                top = ctk.CTkToplevel(self)
+                top.title("Zoom Inspector (Nearest Neighbor)")
+                top.geometry("900x950")
+                
+                img = Image.open("./results/result.bmp")
+                w, h = img.size
+                self.insp_zoomed = img.resize((w * 4, h * 4), Image.Resampling.NEAREST)
+                
+                self.insp_x = max(0, (self.insp_zoomed.width - 800) // 2)
+                self.insp_y = max(0, (self.insp_zoomed.height - 800) // 2)
+                
+                self.insp_lbl = ctk.CTkLabel(top, text="", cursor="fleur")
+                self.insp_lbl.pack(expand=True, fill="both", padx=20, pady=(20, 10))
+                
+                self.update_insp_crop()
+                
+                self.insp_lbl.bind("<ButtonPress-1>", self.insp_press)
+                self.insp_lbl.bind("<B1-Motion>", self.insp_drag)
+                
+                info = ctk.CTkLabel(top, text="Zoomed 400%. Drag with mouse to pan.", text_color="#a0a0a0")
+                info.pack(side="bottom", pady=5)
+                
+                close_btn = ctk.CTkButton(top, text="Close Window", command=top.destroy, fg_color="#ef4444", hover_color="#dc2626")
+                close_btn.pack(side="bottom", pady=10)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not load image: {e}")
+
+    def insp_press(self, event):
+        self.insp_start_x = event.x
+        self.insp_start_y = event.y
+
+    def insp_drag(self, event):
+        dx = self.insp_start_x - event.x
+        dy = self.insp_start_y - event.y
+        self.insp_x += dx
+        self.insp_y += dy
+        self.insp_start_x = event.x
+        self.insp_start_y = event.y
+        self.update_insp_crop()
+
+    def update_insp_crop(self):
+        if self.insp_x < 0: self.insp_x = 0
+        if self.insp_y < 0: self.insp_y = 0
+        max_x = max(0, self.insp_zoomed.width - 800)
+        max_y = max(0, self.insp_zoomed.height - 800)
+        if self.insp_x > max_x: self.insp_x = max_x
+        if self.insp_y > max_y: self.insp_y = max_y
+        
+        cropped = self.insp_zoomed.crop((self.insp_x, self.insp_y, self.insp_x + 800, self.insp_y + 800))
+        ctk_img = ctk.CTkImage(light_image=cropped, dark_image=cropped, size=(800, 800))
+        self.insp_lbl.configure(image=ctk_img)
+        self.insp_lbl.image = ctk_img
+
+    def show_error_map(self):
+        if hasattr(self, 'error_map_path') and os.path.exists(self.error_map_path):
+            try:
+                top = ctk.CTkToplevel(self)
+                top.title("Error Map (Difference Heatmap)")
+                top.geometry("650x700")
+                
+                img = Image.open(self.error_map_path)
+                w, h = img.size
+                ratio = min(600 / w, 500 / h)
+                new_w, new_h = int(w * ratio), int(h * ratio)
+                
+                ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(new_w, new_h))
+                lbl = ctk.CTkLabel(top, image=ctk_img, text="")
+                lbl.pack(expand=True, fill="both", padx=20, pady=(20, 5))
+                
+                # Dynamic Legend UI
+                legend_frame = ctk.CTkFrame(top, fg_color="transparent")
+                legend_frame.pack(fill="x", padx=40, pady=5)
+                
+                legend_frame.grid_columnconfigure((0, 2), weight=0)
+                legend_frame.grid_columnconfigure(1, weight=1)
+                
+                min_lbl = ctk.CTkLabel(legend_frame, text="0\nNo Error", text_color="#3b82f6", font=ctk.CTkFont(weight="bold"))
+                min_lbl.grid(row=0, column=0, sticky="w")
+                
+                import cv2, numpy as np
+                arr = np.linspace(0, 255, 400).astype(np.uint8)
+                arr = np.tile(arr, (20, 1))
+                arr_color = cv2.applyColorMap(arr, cv2.COLORMAP_JET)
+                arr_color = cv2.cvtColor(arr_color, cv2.COLOR_BGR2RGB)
+                grad_img = Image.fromarray(arr_color)
+                
+                grad_ctk = ctk.CTkImage(light_image=grad_img, dark_image=grad_img, size=(300, 20))
+                grad_lbl = ctk.CTkLabel(legend_frame, image=grad_ctk, text="")
+                grad_lbl.grid(row=0, column=1, sticky="ew", padx=15)
+                
+                max_lbl = ctk.CTkLabel(legend_frame, text="255\nMax Error", text_color="#ef4444", font=ctk.CTkFont(weight="bold"))
+                max_lbl.grid(row=0, column=2, sticky="e")
+                
+                close_btn = ctk.CTkButton(top, text="Close Window", command=top.destroy, fg_color="#ef4444", hover_color="#dc2626")
+                close_btn.pack(pady=10)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not load error map: {e}")
 
     def d_slider_event(self, value):
         self.d_var.set(str(int(value)))
@@ -239,6 +357,8 @@ class JpegConverterApp(ctk.CTk):
             try:
                 self.res_img_display.configure(image=None, text="No Result Yet")
                 self.res_info.configure(text="")
+                self.error_map_btn.configure(state="disabled")
+                self.zoom_btn.configure(state="disabled")
                 
                 ctk_img, size = create_scaled_ctk_image(file_path, max_size=(450, 450))
                 self.orig_img_display.configure(image=ctk_img, text="")
@@ -288,6 +408,8 @@ class JpegConverterApp(ctk.CTk):
             
         self.status_label.configure(text="Compressing...")
         self.compress_btn.configure(state="disabled")
+        self.error_map_btn.configure(state="disabled")
+        self.zoom_btn.configure(state="disabled")
         
         self.update_idletasks()
         
@@ -306,6 +428,9 @@ class JpegConverterApp(ctk.CTk):
         self.compress_btn.configure(state="normal")
         if success:
             self.status_label.configure(text="Compression complete")
+            self.error_map_path = result_data["error_map_path"]
+            self.error_map_btn.configure(state="normal")
+            self.zoom_btn.configure(state="normal")
             
             if result_data["huffman_bytes"] is not None:
                 huffman_kb = result_data["huffman_bytes"] / 1024
