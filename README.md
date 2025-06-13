@@ -9,8 +9,13 @@
 - Manual implementation of the 2D DCT (DCT2) from theoretical definition.
 - Performance comparison between manual and library-based DCT2 using SciPy (FFT-based).
 - Block-wise image compression using DCT2 and high-frequency suppression.
-- GUI or CLI for image selection and parameter tuning.
-- Side-by-side visualization of original and compressed images.
+- **Modern Dark-Mode GUI** powered by `customtkinter` for parameter tuning and side-by-side visualization.
+- **Quantitative Quality Metrics:** Real-time calculation of **PSNR** (Peak Signal-to-Noise Ratio) and **MSE** (Mean Squared Error).
+- **Theoretical File Size Estimation (Huffman):** Simulates Huffman Encoding on the quantized DCT coefficients to provide an accurate estimate of the final compressed file size. This can be toggled on/off to compare the theoretical size with the raw uncompressed `.bmp` size.
+- **Visual Error Map:** Generates a heatmap showing exactly which high-frequency details were discarded during compression, complete with an intuitive 0-255 colorbar legend.
+- **Interactive Zoom:** A pixel-perfect magnification tool (nearest-neighbor scaling) that lets you click and drag to explore the 400% zoomed image and clearly observe the 8x8 blocking artifacts typical of DCT compression.
+- **Compare Mode:** A presentation-ready full-screen view that overlays the original and compressed images, letting you drag a vertical divider left and right to interactively compare the before and after results.
+- **Fullscreen Image Toggle:** Click on any image in the side-by-side view to instantly enlarge it for detailed inspection.
 
 ## Objectives
 
@@ -52,7 +57,7 @@ python main.py --image path/to/image.bmp -f 8 -d 8
 ```
 
 ### Graphical User Interface (GUI)
-To run the GUI for image selection and compression parameters, you can use:
+To run the modern GUI for image selection and compression parameters, use:
 ```bash
 run-gui # This will open the GUI for image selection and compression parameters
 ```
@@ -60,9 +65,15 @@ or
 ```bash
 python main.py
 ```
-The compressed image will be displayed next to the original, and saved to the results/ folder.
-> [!WARNING]
-> To run the GUI, ensure you have the `tkinter` library installed. If not, you can install it using your package manager (e.g., `apt-get install python3-tk` on Debian-based systems).
+The GUI provides a complete visual case study platform where you can:
+- Adjust `D` (frequencies kept) dynamically using a slider bound by `2F - 2`.
+- Toggle the **Huffman Size Estimation** to calculate exact compression entropy.
+- View the percentage of retained frequencies in real-time.
+- Compare original and compressed images side-by-side (click any image to enlarge it).
+- Review PSNR, MSE, and estimated file sizes at a glance.
+- Click **"Show Error Map"** to see a heatmap (with a color legend) of the discarded high-frequency data.
+- Click **"Zoom"** to pan around a 400% magnified view of the compressed image to easily spot 8x8 blocking artifacts.
+- Click **"Compare Mode"** in the top right to enter a full-screen interactive before/after slider mode (Press ESC to exit).
 
 ## Benchmarking
 To run the benchmark and generate the timing plot comparing your custom DCT2 with the SciPy version:

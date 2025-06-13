@@ -26,6 +26,7 @@ def create_scaled_ctk_image(img_path, max_size=(450, 450)):
     w, h = img.size
     ratio = min(max_size[0] / w, max_size[1] / h)
     new_w, new_h = int(w * ratio), int(h * ratio)
+    # CTkImage resizes internally to the requested size
     return ctk.CTkImage(light_image=img, dark_image=img, size=(new_w, new_h)), (w, h)
 
 class JpegConverterApp(ctk.CTk):
@@ -44,6 +45,9 @@ class JpegConverterApp(ctk.CTk):
         self.setup_ui()
         
     def setup_ui(self):
+        self.compare_mode_active = False
+        self.fullscreen_img = None
+        
         # --- Header ---
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(10, 5))
@@ -59,6 +63,13 @@ class JpegConverterApp(ctk.CTk):
             font=ctk.CTkFont(size=14), text_color="#a0a0a0"
         )
         self.desc_label.pack(side="left", padx=15, pady=(5,0))
+        
+        self.compare_btn = ctk.CTkButton(
+            self.header_frame, text="Compare Mode", width=120,
+            fg_color="#27272a", hover_color="#3f3f46", text_color="white",
+            command=self.toggle_compare_mode
+        )
+        self.compare_btn.pack(side="right", padx=10)
         
         # --- Main Image Area ---
         self.images_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -83,8 +94,9 @@ class JpegConverterApp(ctk.CTk):
         self.orig_info = ctk.CTkLabel(self.orig_header, text="", text_color="#888888")
         self.orig_info.pack(side="right")
         
-        self.orig_img_display = ctk.CTkLabel(self.original_frame, text="No Image Selected\n\nClick 'Load Image' below", text_color="#555555")
+        self.orig_img_display = ctk.CTkLabel(self.original_frame, text="No Image Selected\n\nClick 'Load Image' below", text_color="#555555", cursor="hand2")
         self.orig_img_display.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+        self.orig_img_display.bind("<Button-1>", lambda e: self.toggle_fullscreen_img(self.original_frame))
         
         # Compressed Image Panel
         self.result_frame = ctk.CTkFrame(self.images_frame, fg_color="#121212", corner_radius=12)
@@ -101,8 +113,9 @@ class JpegConverterApp(ctk.CTk):
         self.res_info = ctk.CTkLabel(self.res_header, text="", text_color="#888888")
         self.res_info.pack(side="right")
         
-        self.res_img_display = ctk.CTkLabel(self.result_frame, text="No Result Yet", text_color="#555555")
+        self.res_img_display = ctk.CTkLabel(self.result_frame, text="No Result Yet", text_color="#555555", cursor="hand2")
         self.res_img_display.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+        self.res_img_display.bind("<Button-1>", lambda e: self.toggle_fullscreen_img(self.result_frame))
         
         # --- Controls Area ---
         self.controls_frame = ctk.CTkFrame(self, fg_color="#18181b", corner_radius=12, border_width=1, border_color="#27272a")
@@ -204,6 +217,108 @@ class JpegConverterApp(ctk.CTk):
         
         self.status_label = ctk.CTkLabel(self.extras_frame, text="Ready", text_color="#71717a")
         self.status_label.pack(side="bottom")
+
+    def toggle_compare_mode(self):
+        self.compare_mode_active = not self.compare_mode_active
+        if self.compare_mode_active:
+            self.header_frame.grid_remove()
+            self.controls_frame.grid_remove()
+            self.images_frame.grid_configure(padx=0, pady=0)
+            
+            self.original_frame.grid_remove()
+            self.result_frame.grid_remove()
+            
+            self.compare_frame = ctk.CTkFrame(self.images_frame, fg_color="black")
+            self.compare_frame.grid(row=0, column=0, columnspan=2, sticky="nsew")
+            
+            self.compare_label = ctk.CTkLabel(self.compare_frame, text="", cursor="sb_h_double_arrow")
+            # Center the label so its size exactly matches the image, making event.x 1:1
+            self.compare_label.place(relx=0.5, rely=0.5, anchor="center")
+            
+            if hasattr(self, 'selected_file') and self.selected_file and os.path.exists("./results/result.bmp"):
+                img_left = Image.open(self.selected_file).convert("RGB")
+                img_right = Image.open("./results/result.bmp").convert("RGB")
+                
+                # Get max available size
+                self.compare_frame.update_idletasks()
+                target_w = self.winfo_width() - 20
+                target_h = self.winfo_height() - 20
+                if target_w < 100: target_w = 1000
+                if target_h < 100: target_h = 700
+                
+                w, h = img_left.size
+                ratio = min(target_w / w, target_h / h)
+                new_w, new_h = int(w * ratio), int(h * ratio)
+                
+                self.comp_img_left = img_left.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                self.comp_img_right = img_right.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                self.comp_w, self.comp_h = new_w, new_h
+                
+                self.compare_label.bind("<Motion>", self.compare_motion)
+                self.draw_compare_slider(new_w // 2)
+            else:
+                self.compare_label.configure(text="No image to compare. ESC to exit.")
+                
+            self.bind_all("<Escape>", lambda e: self.toggle_compare_mode())
+        else:
+            self.header_frame.grid()
+            self.controls_frame.grid()
+            self.images_frame.grid_configure(padx=20, pady=5)
+            
+            if hasattr(self, 'compare_frame'):
+                self.compare_frame.destroy()
+                
+            self.original_frame.grid(row=0, column=0, columnspan=1, sticky="nsew", padx=(0, 10))
+            self.result_frame.grid(row=0, column=1, columnspan=1, sticky="nsew", padx=(10, 0))
+            
+            self.unbind_all("<Escape>")
+            if self.fullscreen_img:
+                self.toggle_fullscreen_img(None)
+                
+    def compare_motion(self, event):
+        x = event.x
+        if x < 0: x = 0
+        if x > self.comp_w: x = self.comp_w
+        self.draw_compare_slider(x)
+        
+    def draw_compare_slider(self, split_x):
+        from PIL import ImageDraw
+        composite = self.comp_img_right.copy()
+        if split_x > 0:
+            left_crop = self.comp_img_left.crop((0, 0, split_x, self.comp_h))
+            composite.paste(left_crop, (0, 0))
+            
+        draw = ImageDraw.Draw(composite)
+        draw.line([(split_x, 0), (split_x, self.comp_h)], fill="white", width=3)
+        
+        ctk_img = ctk.CTkImage(light_image=composite, dark_image=composite, size=(self.comp_w, self.comp_h))
+        self.compare_label.configure(image=ctk_img)
+        self.compare_label.image = ctk_img
+
+    def toggle_fullscreen_img(self, frame_to_show):
+        if self.fullscreen_img == frame_to_show or frame_to_show is None:
+            self.original_frame.grid(row=0, column=0, columnspan=1, sticky="nsew", padx=(0, 10))
+            self.result_frame.grid(row=0, column=1, columnspan=1, sticky="nsew", padx=(10, 0))
+            self.fullscreen_img = None
+            
+            if hasattr(self, 'selected_file') and self.selected_file:
+                ctk_img, _ = create_scaled_ctk_image(self.selected_file, max_size=(450, 450))
+                self.orig_img_display.configure(image=ctk_img)
+            if os.path.exists("./results/result.bmp"):
+                ctk_img, _ = create_scaled_ctk_image("./results/result.bmp", max_size=(450, 450))
+                self.res_img_display.configure(image=ctk_img)
+        else:
+            self.original_frame.grid_remove()
+            self.result_frame.grid_remove()
+            frame_to_show.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=0, pady=0)
+            self.fullscreen_img = frame_to_show
+            
+            if frame_to_show == self.original_frame and hasattr(self, 'selected_file') and self.selected_file:
+                ctk_img, _ = create_scaled_ctk_image(self.selected_file, max_size=(1000, 800))
+                self.orig_img_display.configure(image=ctk_img)
+            elif frame_to_show == self.result_frame and os.path.exists("./results/result.bmp"):
+                ctk_img, _ = create_scaled_ctk_image("./results/result.bmp", max_size=(1000, 800))
+                self.res_img_display.configure(image=ctk_img)
 
     def open_zoom(self):
         if hasattr(self, 'selected_file') and os.path.exists("./results/result.bmp"):
@@ -307,6 +422,7 @@ class JpegConverterApp(ctk.CTk):
                 messagebox.showerror("Error", f"Could not load error map: {e}")
 
     def d_slider_event(self, value):
+        # Update entry without triggering its trace (or let the trace handle it, but safely)
         self.d_var.set(str(int(value)))
         self.update_stats()
 
@@ -355,11 +471,15 @@ class JpegConverterApp(ctk.CTk):
         if file_path:
             self.selected_file = file_path
             try:
+                if self.fullscreen_img:
+                    self.toggle_fullscreen_img(None)
+                    
                 self.res_img_display.configure(image=None, text="No Result Yet")
                 self.res_info.configure(text="")
                 self.error_map_btn.configure(state="disabled")
                 self.zoom_btn.configure(state="disabled")
                 
+                # Revert to 450 to keep 50/50 layout safe
                 ctk_img, size = create_scaled_ctk_image(file_path, max_size=(450, 450))
                 self.orig_img_display.configure(image=ctk_img, text="")
                 self.orig_img_display.image = ctk_img
@@ -378,6 +498,7 @@ class JpegConverterApp(ctk.CTk):
                 ctk_img, size = create_scaled_ctk_image(file_path, max_size=(450, 450))
                 self.res_img_display.configure(image=ctk_img, text="")
                 self.res_img_display.image = ctk_img
+                # File size is updated in _compression_done via the huffman metric or BMP size
             except Exception as e:
                 print(f"Error loading result: {e}")
 
@@ -406,17 +527,22 @@ class JpegConverterApp(ctk.CTk):
             messagebox.showerror("Error", f"The value of D must be between 0 and {2 * f_value - 2}")
             return
             
+        if self.fullscreen_img:
+            self.toggle_fullscreen_img(None)
+            
         self.status_label.configure(text="Compressing...")
         self.compress_btn.configure(state="disabled")
         self.error_map_btn.configure(state="disabled")
         self.zoom_btn.configure(state="disabled")
         
+        # Small delay to allow UI to update state before blocking thread starts
         self.update_idletasks()
         
         threading.Thread(target=self._run_compression, args=(f_value, d_value), daemon=True).start()
         
     def _run_compression(self, f_value, d_value):
         try:
+            # Reclaim memory before running the compression
             gc.collect()
             use_huff = self.use_huffman_var.get()
             result_data = compress(self.selected_file, f_value, d_value, use_huffman=use_huff)
@@ -432,6 +558,7 @@ class JpegConverterApp(ctk.CTk):
             self.error_map_btn.configure(state="normal")
             self.zoom_btn.configure(state="normal")
             
+            # Update info with metrics
             if result_data["huffman_bytes"] is not None:
                 huffman_kb = result_data["huffman_bytes"] / 1024
                 size_str = f"Est. Size: {huffman_kb:.1f} KB"
