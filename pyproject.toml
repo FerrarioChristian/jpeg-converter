@@ -23,7 +23,9 @@ dependencies = [
   "customtkinter",
   "Pillow",
   "opencv-python",
-  "numpy"
+  "numpy",
+  "scipy",
+  "matplotlib"
 ]
 
 [tool.setuptools.packages.find]

@@ -1,130 +1,205 @@
-# DCT2 based image compression
+# DCT2 Image Compressor
 
->This project is a simplified simulation of JPEG-style image compression based on the 2D Discrete Cosine Transform (DCT2), implemented for grayscale `.bmp` images. It was developed as part of a university assignment in scientific computing.
+> A comprehensive scientific simulation of JPEG-style image compression based on the 2D Discrete Cosine Transform (DCT2), implemented from scratch for grayscale images. Developed as part of an academic assignment in scientific computing.
 
 ---
 
-## Features
+![Modern Dark-Mode GUI](docs/screenshots/gui_main.png)
 
-- Manual implementation of the 2D DCT (DCT2) from theoretical definition.
-- Performance comparison between manual and library-based DCT2 using SciPy (FFT-based).
-- Block-wise image compression using DCT2 and high-frequency suppression.
-- **Modern Dark-Mode GUI** powered by `customtkinter` for parameter tuning and side-by-side visualization.
-- **Quantitative Quality Metrics:** Real-time calculation of **PSNR** (Peak Signal-to-Noise Ratio) and **MSE** (Mean Squared Error).
-- **Theoretical File Size Estimation (Huffman):** Simulates Huffman Encoding on the quantized DCT coefficients to provide an accurate estimate of the final compressed file size. This can be toggled on/off to compare the theoretical size with the raw uncompressed `.bmp` size.
-- **Visual Error Map:** Generates a heatmap showing exactly which high-frequency details were discarded during compression, complete with an intuitive 0-255 colorbar legend.
-- **Interactive Zoom:** A pixel-perfect magnification tool (nearest-neighbor scaling) that lets you click and drag to explore the 400% zoomed image and clearly observe the 8x8 blocking artifacts typical of DCT compression.
-- **Compare Mode:** A presentation-ready full-screen view that overlays the original and compressed images, letting you drag a vertical divider left and right to interactively compare the before and after results.
-- **Fullscreen Image Toggle:** Click on any image in the side-by-side view to instantly enlarge it for detailed inspection.
+---
 
-## Objectives
+## Key Features
 
-- Understand and implement the mathematical definition of DCT and DCT2.
-- Explore the effect of frequency-based compression on image quality.
-- Analyze how the choice of block size `F` and frequency threshold `D` affects compression.
-- Compare naive and optimized algorithms in terms of performance and scalability.
+- **2D DCT From Scratch:** Manual implementation of the orthogonal 2D DCT/IDCT basis matrix directly from theoretical signal projection equations ($O(N^3)$ matrix formulation).
+- **Modern Dark-Mode GUI:** Responsive desktop interface built with `customtkinter` and styled after the modern Shadcn dark design system.
+- **Quantitative Quality Metrics:** Real-time computation of **PSNR** (Peak Signal-to-Noise Ratio), **MSE** (Mean Squared Error), and percentage of retained spatial frequencies.
+- **Theoretical Huffman Size Estimation:** Custom prefix-tree Huffman entropy encoder that calculates the theoretical compressed size in bytes and compression ratio compared to the uncompressed raw `.bmp`.
+- **Visual Error Map:** Thermal JET colormap heatmap showing exactly which high-frequency edges and micro-textures were discarded, complete with an anchored 0–255 colorbar legend.
+- **400% Zoom Tool:** Nearest-neighbor pixel inspection window to navigate and clearly observe 8x8 blocking artifacts without artificial smoothing.
+- **Full-Screen Compare Mode:** Presentation-ready overlay slider that tracks the mouse cursor to inspect before/after differences with instant feedback (press `ESC` to exit).
+- **Benchmarking Suite:** Timing comparison between custom naive matrix DCT2 and SciPy's FFT-accelerated implementation ($O(N^2 \log N)$), outputting semilogarithmic scaling plots.
 
+---
 
-## Installation
+## Visual Showcase
 
-This project uses Python 3 and open-source libraries only.
+| Interactive Compare Slider | Thermal Error Map |
+| :---: | :---: |
+| ![Compare Slider](docs/screenshots/compare_slider.png) | ![Error Map](docs/screenshots/error_map.png) |
+| *Full-screen interactive vertical before/after divider* | *Thermal difference heatmap with 0–255 colorbar legend* |
+
+| 400% Zoom Tool (Blocking Artifacts) |
+| :---: |
+| ![Zoom Inspection](docs/screenshots/zoom_inspection.png) |
+| *Pixel-perfect nearest-neighbor zoom to analyze 8x8 block boundaries* |
+
+---
+
+## Prerequisites
+
+- **Python:** Version `>= 3.8` (tested up to Python 3.13).
+- **Tkinter:** Typically included with official Python distributions. If you use Linux or a minimal Homebrew Python installation on macOS, install the Tkinter system package:
+  - **Debian / Ubuntu / Raspberry Pi OS:**
+    ```bash
+    sudo apt update && sudo apt install -y python3-tk
+    ```
+  - **Arch Linux:**
+    ```bash
+    sudo pacman -S tk
+    ```
+  - **Fedora / RHEL:**
+    ```bash
+    sudo dnf install python3-tkinter
+    ```
+  - **macOS (Homebrew):**
+    ```bash
+    brew install python-tk
+    ```
+
+---
+
+## Step-by-Step Installation
 
 ### 1. Clone the repository
-
 ```bash
 git clone https://github.com/FerrarioChristian/jpeg-converter.git
 cd jpeg-converter
 ```
 
-### 2. Create a virtual environment (optional but recommended)
+### 2. Create and activate a virtual environment
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+# Create venv
+python3 -m venv venv
+
+# Activate venv on macOS/Linux:
+source venv/bin/activate
+
+# Or on Windows (PowerShell / Command Prompt):
+# venv\Scripts\activate
 ```
 
-### 3. Install dependencies
+### 3. Install dependencies and the package
+Install the project in editable mode (this installs all dependencies, including `customtkinter`, `Pillow`, `opencv-python`, `numpy`, `scipy`, and `matplotlib`, and registers CLI entrypoints):
 ```bash
+pip install --upgrade pip
 pip install -e .
 ```
 
+---
+
 ## Usage
 
-You can run the compressor via command-line or GUI, depending on your implementation.
-
-### Command-Line Interface (CLI)
+### 1. Graphical User Interface (Recommended)
+Launch the dark-mode GUI using either the registered command:
 ```bash
-python main.py --image path/to/image.bmp -f 8 -d 8
+run-gui
 ```
-
-### Graphical User Interface (GUI)
-To run the modern GUI for image selection and compression parameters, use:
-```bash
-run-gui # This will open the GUI for image selection and compression parameters
-```
-or 
+or directly via Python:
 ```bash
 python main.py
 ```
-The GUI provides a complete visual case study platform where you can:
-- Adjust `D` (frequencies kept) dynamically using a slider bound by `2F - 2`.
-- Toggle the **Huffman Size Estimation** to calculate exact compression entropy.
-- View the percentage of retained frequencies in real-time.
-- Compare original and compressed images side-by-side (click any image to enlarge it).
-- Review PSNR, MSE, and estimated file sizes at a glance.
-- Click **"Show Error Map"** to see a heatmap (with a color legend) of the discarded high-frequency data.
-- Click **"Zoom"** to pan around a 400% magnified view of the compressed image to easily spot 8x8 blocking artifacts.
-- Click **"Compare Mode"** in the top right to enter a full-screen interactive before/after slider mode (Press ESC to exit).
 
-## Benchmarking
-To run the benchmark and generate the timing plot comparing your custom DCT2 with the SciPy version:
-```bash
-python tests/benchmark.py
-```
-or
-```bash
-run-benchmark
-```
-This will generate a semilogarithmic plot saved in results/benchmark.jpeg
+#### Inside the GUI:
+1. Click **"Carica Immagine"** to select any grayscale `.bmp` image (a sample `caravaggio.jpg` is loaded by default).
+2. Adjust the block size `F` (standard 8) and use the interactive slider to tune frequency cutoff `d` (`0 <= d <= 2F - 2`).
+3. Toggle **"Stima Huffman"** to view real-time theoretical file size estimates alongside PSNR and MSE.
+4. Click on either image in the split view to enlarge it full-canvas.
+5. Use **"Show Error Map"** to inspect discarded high frequencies.
+6. Use **"Zoom"** to inspect 8x8 block artifacts at 400% magnification.
+7. Click **"Compare Mode"** in the top-right header for the full-screen interactive slider.
 
-## Test
-To run the test to verify the correctness of the algorithm:
+---
+
+### 2. Command-Line Interface (CLI)
+You can also run batch compressions via the CLI:
 ```bash
-python tests/test.py
+python main.py --image images/640x640.bmp -f 8 -d 8
 ```
-or
+The output image and compression statistics will be saved to `results/result.bmp`.
+
+---
+
+## Benchmarking & Tests
+
+### Algorithm Correctness Tests
+Verify the mathematical precision of custom 1D and 2D DCT implementations against predefined tolerances:
 ```bash
 run-test
+# or: python tests/test.py
 ```
 
+### Computational Benchmark
+Compare custom matrix DCT2 ($O(N^3)$) against SciPy's FFT-based implementation ($O(N^2 \log N)$):
+```bash
+run-benchmark
+# or: python tests/benchmark.py
+```
+This generates a semilogarithmic plot saved to `results/benchmark.jpeg`.
 
+### Parameter Sweep
+Run a batch test across multiple block sizes $F \in \{8, 16, 32, 64, 128\}$ and cutoffs $D$:
+```bash
+run-parameter-test
+# or: python tests/parameters.py
+```
 
-### Notes
-- Only grayscale .bmp images are supported.
-- Frequencies are discarded based on the rule: keep all DCT coefficients cₖₗ such that `k + l < d`.
-- Block remainders at the image borders are discarded for simplicity.
+---
+
+## Theoretical Overview & Notes
+
+- **DCT2 Transformation:** Each $F \times F$ block $X$ is projected into frequency space via $Y = C \cdot X \cdot C^T$, where $C$ is the orthogonal DCT basis matrix.
+- **Frequency Truncation:** High-frequency coefficients with indices $k + l \ge d$ are set to zero.
+- **Inverse DCT2:** The block is reconstructed using the orthogonal transpose basis: $X' = C^T \cdot Y \cdot C$.
+- **Format Support:** Standard grayscale `.bmp` images (8-bit). Border remainders not divisible by $F$ are cropped for boundary alignment.
+
+---
 
 ## Project Structure
+
 ```
-├── cli
+├── cli/
 │   ├── __init__.py
-│   └── cli.py
-├── converter
-│   ├── __init__.py
-│   ├── backend.py
-│   └── dct.py
-├── gui
-│   ├── __init__.py
-│   ├── gui.py
-│   └── resources
-│       └── caravaggio.jpg
-├── images
-├── main.py
-├── pyproject.toml
-├── results
-│   ├── benchmark.jpeg
-│   └── result.bmp
-└── tests
-    ├── __init__.py
-    ├── benchmark.py
-    └── test.py
+│   └── cli.py                 # Command-line interface logic
+├── converter/
+│   ├── __init__.py
+│   ├── backend.py             # Image loading, slicing, and compression pipeline
+│   ├── dct.py                 # Pure Python 1D & 2D DCT matrix implementation
+│   └── huffman.py             # Custom Huffman prefix tree entropy estimator
+├── docs/
+│   ├── Relazione.pdf          # Full academic scientific report (Italian)
+│   ├── latex/                 # LaTeX source files for the report
+│   └── screenshots/           # Application screenshots for docs and showcase
+├── gui/
+│   ├── __init__.py
+│   ├── gui.py                 # CustomTkinter Dark-Mode application
+│   └── resources/
+│       └── caravaggio.jpg     # Default sample asset
+├── images/                    # Benchmark and test grayscale images
+├── results/                   # Destination for compressed images and benchmark plots
+├── tests/
+│   ├── benchmark.py           # SciPy vs Custom DCT performance benchmark
+│   ├── parameters.py          # Multi-parameter batch sweep
+│   └── test.py                # Mathematical validation tests
+├── main.py                    # Unified entrypoint (GUI / CLI)
+└── pyproject.toml             # Package metadata, dependencies, and CLI scripts
 ```
+
+---
+
+## Academic Report
+
+The complete scientific report written for the *Metodi del Calcolo Scientifico* course (Università degli Studi di Milano-Bicocca) is available as a compiled PDF:
+- [Relazione.pdf](docs/Relazione.pdf) (Italian, 15+ pages of theoretical proofs, error graphs, and algorithmic analysis).
+
+---
+
+## Authors
+
+- **Christian Ferrario** – [GitHub](https://github.com/FerrarioChristian) – `c.ferrario30@campus.unimib.it`
+- **Andrea Lanza** – `a.lanza13@campus.unimib.it`
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
